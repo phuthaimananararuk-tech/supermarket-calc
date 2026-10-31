@@ -47,8 +47,11 @@ function comparePrice() {
         item.badge.classList.add('badge-worse');
     }
 
-    // เก็บข้อมูลผลลัพธ์ไว้เผื่อกดปุ่มบันทึก
-    currentCalculationResult = { items, best };
+    currentCalculationResult = { 
+        inputs: { priceA, weightA, priceB, weightB, priceC, weightC },
+        items, 
+        best 
+    };
     btnSave.disabled = false;
 }
 
@@ -68,7 +71,6 @@ function clearFields() {
     currentCalculationResult = null;
 }
 
-// ระบบจัดการประวัติ (LocalStorage)
 function promptSaveRecord() {
     if (!currentCalculationResult) return;
 
@@ -81,12 +83,13 @@ function promptSaveRecord() {
         id: Date.now(),
         name: productName.trim(),
         date: new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' }),
+        inputs: currentCalculationResult.inputs, // บันทึกค่า input ทั้งหมดเก็บไว้ด้วย
         bestUnit: currentCalculationResult.best.unit,
         bestName: currentCalculationResult.best.name
     };
 
-    history.unshift(record); // เอาไว้บนสุด
-    if (history.length > 20) history.pop(); // เก็บไว้สูงสุด 20 รายการ
+    history.unshift(record);
+    if (history.length > 20) history.pop();
 
     localStorage.setItem('price_calc_history', JSON.stringify(history));
     alert("บันทึกข้อมูลเรียบร้อยแล้ว!");
@@ -103,11 +106,11 @@ function openHistoryModal() {
     } else {
         listContainer.innerHTML = history.map(item => `
             <div class="history-item">
-                <div class="history-info">
+                <div class="history-info" onclick="loadHistoryItem(${item.id})" style="cursor: pointer; flex-grow: 1;">
                     <strong>${item.name}</strong>
                     <small>${item.date} — แนะนำ ${item.bestName} (${item.bestUnit.toFixed(2)} บ./หน่วย)</small>
                 </div>
-                <button onclick="deleteHistoryItem(${item.id})" class="btn-del">ลบ</button>
+                <button onclick="deleteHistoryItem(event, ${item.id})" class="btn-del">ลบ</button>
             </div>
         `).join('');
     }
@@ -119,9 +122,27 @@ function closeHistoryModal() {
     document.getElementById('historyModal').classList.add('hidden');
 }
 
-function deleteHistoryItem(id) {
+// กดที่ประวัติเพื่อโหลดค่าเดิมกลับมาใส่ฟอร์ม
+function loadHistoryItem(id) {
+    let history = JSON.parse(localStorage.getItem('price_calc_history') || '[]');
+    let target = history.find(item => item.id === id);
+    if (!target) return;
+
+    document.getElementById('priceA').value = isNaN(target.inputs.priceA) ? '' : target.inputs.priceA;
+    document.getElementById('weightA').value = isNaN(target.inputs.weightA) ? '' : target.inputs.weightA;
+    document.getElementById('priceB').value = isNaN(target.inputs.priceB) ? '' : target.inputs.priceB;
+    document.getElementById('weightB').value = isNaN(target.inputs.weightB) ? '' : target.inputs.weightB;
+    document.getElementById('priceC').value = isNaN(target.inputs.priceC) ? '' : target.inputs.priceC;
+    document.getElementById('weightC').value = isNaN(target.inputs.weightC) ? '' : target.inputs.weightC;
+
+    closeHistoryModal();
+    comparePrice(); // คำนวณใหม่ทันที
+}
+
+function deleteHistoryItem(event, id) {
+    event.stopPropagation(); // ป้องกันไม่ให้กดโดน event ของตัวแม่
     let history = JSON.parse(localStorage.getItem('price_calc_history') || '[]');
     history = history.filter(item => item.id !== id);
     localStorage.setItem('price_calc_history', JSON.stringify(history));
-    openHistoryModal(); // รีเฟรชรายการใน Modal
+    openHistoryModal();
 }
