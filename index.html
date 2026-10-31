@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>เทียบคุ้ม (v2.1)</title>
+    <title>เทียบคุ้ม (v2.2)</title>
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="เทียบคุ้ม (v2.1)">
+    <meta name="apple-mobile-web-app-title" content="เทียบคุ้ม (v2.2)">
     <style>
         body { background-color: #cbd5e1; color: #1e293b; margin: 0; }
     </style>
 </head>
-<body>
+<body ontouchstart="">
     <div class="app-container">
         <header class="app-header">
-            <h2>เทียบคุ้ม <button onclick="forceAppUpdate()" class="app-version" title="แตะเพื่ออัปเดตทันที">v2.1</button></h2>
+            <h2>เทียบคุ้ม <button onclick="forceAppUpdate()" class="app-version" title="แตะเพื่ออัปเดตทันที">v2.2</button></h2>
             <button onclick="openHistoryModal()" class="btn-history" title="ประวัติการบันทึก">📜 ประวัติ</button>
         </header>
         
@@ -24,8 +24,8 @@
         <div class="product-card card-a">
             <h3>สินค้า A <span id="badgeA" class="badge"></span></h3>
             <div class="input-group">
-                <input type="number" id="priceA" placeholder="ราคา" inputmode="decimal" onfocus="handleFocus(this)" onblur="handleBlur(this)" oninput="handleInputChange()">
-                <input type="number" id="weightA" placeholder="จำนวน" inputmode="decimal" onfocus="handleFocus(this)" onblur="handleBlur(this)" oninput="handleInputChange()">
+                <input type="number" id="priceA" placeholder="ราคา" inputmode="decimal" onfocus="handleFocus(this)" onblur="handleBlur(this)" onkeydown="handleKeyDown(this)" oninput="handleInputChange()">
+                <input type="number" id="weightA" placeholder="จำนวน" inputmode="decimal" onfocus="handleFocus(this)" onblur="handleBlur(this)" onkeydown="handleKeyDown(this)" oninput="handleInputChange()">
             </div>
         </div>
 
@@ -33,8 +33,8 @@
         <div class="product-card card-b">
             <h3>สินค้า B <span id="badgeB" class="badge"></span></h3>
             <div class="input-group">
-                <input type="number" id="priceB" placeholder="ราคา" inputmode="decimal" onfocus="handleFocus(this)" onblur="handleBlur(this)" oninput="handleInputChange()">
-                <input type="number" id="weightB" placeholder="จำนวน" inputmode="decimal" onfocus="handleFocus(this)" onblur="handleBlur(this)" oninput="handleInputChange()">
+                <input type="number" id="priceB" placeholder="ราคา" inputmode="decimal" onfocus="handleFocus(this)" onblur="handleBlur(this)" onkeydown="handleKeyDown(this)" oninput="handleInputChange()">
+                <input type="number" id="weightB" placeholder="จำนวน" inputmode="decimal" onfocus="handleFocus(this)" onblur="handleBlur(this)" onkeydown="handleKeyDown(this)" oninput="handleInputChange()">
             </div>
         </div>
 
@@ -42,8 +42,8 @@
         <div class="product-card card-c">
             <h3>สินค้า C <span id="badgeC" class="badge"></span></h3>
             <div class="input-group">
-                <input type="number" id="priceC" placeholder="ราคา" inputmode="decimal" onfocus="handleFocus(this)" onblur="handleBlur(this)" oninput="handleInputChange()">
-                <input type="number" id="weightC" placeholder="จำนวน" inputmode="decimal" onfocus="handleFocus(this)" onblur="handleBlur(this)" oninput="handleInputChange()">
+                <input type="number" id="priceC" placeholder="ราคา" inputmode="decimal" onfocus="handleFocus(this)" onblur="handleBlur(this)" onkeydown="handleKeyDown(this)" oninput="handleInputChange()">
+                <input type="number" id="weightC" placeholder="จำนวน" inputmode="decimal" onfocus="handleFocus(this)" onblur="handleBlur(this)" onkeydown="handleKeyDown(this)" oninput="handleInputChange()">
             </div>
         </div>
 
