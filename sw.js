@@ -1,4 +1,4 @@
-const CACHE_NAME = 'price-calc-v4';
+const CACHE_NAME = 'เทียบคุ้ม-v5';
 const ASSETS = [
   './',
   './index.html',
