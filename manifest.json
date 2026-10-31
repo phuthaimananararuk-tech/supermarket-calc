@@ -3,7 +3,7 @@
   "short_name": "เทียบคุ้ม",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#f8fafc",
-  "theme_color": "#3b82f6",
+  "background_color": "#cbd5e1",
+  "theme_color": "#2563eb",
   "icons": []
 }
