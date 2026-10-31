@@ -16,7 +16,12 @@
 <body ontouchstart="">
     <div class="app-container">
         <header class="app-header">
-            <h2>เทียบคุ้ม <button onclick="forceAppUpdate()" class="app-version" title="แตะเพื่ออัปเดตทันที">v2.3</button></h2>
+            <!-- แสดงภาพไอคอน PNG แทนข้อความ และมีปุ่มเวอร์ชัน v2.3 สำหรับกดอัปเดต -->
+            <div class="brand-title">
+                <img src="icon.png" alt="Icon" class="header-logo">
+                <span>เทียบคุ้ม</span>
+                <button onclick="forceAppUpdate()" class="app-version" title="แตะเพื่ออัปเดตทันที">v2.3</button>
+            </div>
             <button onclick="openHistoryModal()" class="btn-history" title="ประวัติการบันทึก">📜 ประวัติ</button>
         </header>
         
