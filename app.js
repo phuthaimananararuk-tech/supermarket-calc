@@ -1,13 +1,11 @@
 let currentCalculationResult = null;
 let activeFieldInitialValue = "";
 
-// เมื่อแตะ/คลิกช่องกรอกข้อมูล ให้เคลียร์ค่าทันที แต่จำค่าเดิมไว้
 function handleFocus(input) {
     activeFieldInitialValue = input.value;
     input.value = "";
 }
 
-// ถ้าออกจากช่องกรอกโดยไม่ได้พิมพ์อะไรใหม่เลย ให้คืนค่าเดิมกลับมา
 function handleBlur(input) {
     if (input.value === "" && activeFieldInitialValue !== "") {
         input.value = activeFieldInitialValue;
@@ -166,4 +164,26 @@ function deleteHistoryItem(event, id) {
     history = history.filter(item => item.id !== id);
     localStorage.setItem('price_calc_history', JSON.stringify(history));
     openHistoryModal();
+}
+
+// ⚡ ฟังก์ชันบังคับอัปเดตแอป (บังคับล้างแคชแล้วดึงเวอร์ชันล่าสุดสดๆ ทันที)
+function forceUpdateApp() {
+    if (!navigator.onLine) {
+        alert("⚠️ กรุณาลอมเชื่อมต่ออินเทอร์เน็ตก่อนทำการอัปเดตครับ");
+        return;
+    }
+    
+    if (confirm("ต้องการอัปเดตแอปเป็นเวอร์ชันล่าสุดจากเซิร์ฟเวอร์ใช่ไหม?")) {
+        if ('serviceWorker' in navigator) {
+            caches.keys().then((names) => {
+                // ลบแคชทั้งหมดในเครื่องทิ้ง
+                return Promise.all(names.map((name) => caches.delete(name)));
+            }).then(() => {
+                // บังคับรีโหลดหน้าเว็บใหม่จากเซิร์ฟเวอร์โดยตรง
+                window.location.reload(true);
+            });
+        } else {
+            window.location.reload(true);
+        }
+    }
 }
