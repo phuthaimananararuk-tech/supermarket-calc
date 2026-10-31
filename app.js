@@ -166,24 +166,33 @@ function deleteHistoryItem(event, id) {
     openHistoryModal();
 }
 
-// ⚡ ฟังก์ชันบังคับอัปเดตแอป (บังคับล้างแคชแล้วดึงเวอร์ชันล่าสุดสดๆ ทันที)
-function forceUpdateApp() {
+// 🔄 ฟังก์ชันบังคับอัปเดตแอป สั่งเคลียร์แคชและดึงเวอร์ชันล่าสุดจาก GitHub Pages
+async function forceAppUpdate() {
     if (!navigator.onLine) {
-        alert("⚠️ กรุณาลอมเชื่อมต่ออินเทอร์เน็ตก่อนทำการอัปเดตครับ");
+        alert("⚠️ โปรดเชื่อมต่ออินเทอร์เน็ตก่อนทำการกดอัปเดตแอป");
         return;
     }
-    
-    if (confirm("ต้องการอัปเดตแอปเป็นเวอร์ชันล่าสุดจากเซิร์ฟเวอร์ใช่ไหม?")) {
-        if ('serviceWorker' in navigator) {
-            caches.keys().then((names) => {
-                // ลบแคชทั้งหมดในเครื่องทิ้ง
-                return Promise.all(names.map((name) => caches.delete(name)));
-            }).then(() => {
-                // บังคับรีโหลดหน้าเว็บใหม่จากเซิร์ฟเวอร์โดยตรง
-                window.location.reload(true);
-            });
-        } else {
+
+    if (confirm("ต้องการอัปเดตแอปเป็นเวอร์ชันล่าสุดทันทีใช่หรือไม่?")) {
+        try {
+            // 1. ล้าง Cache Storage ทั้งหมด
+            if ('caches' in window) {
+                const cacheNames = await caches.keys();
+                await Promise.all(cacheNames.map(name => caches.delete(name)));
+            }
+
+            // 2. สั่ง Unregister Service Worker เก่า
+            if ('serviceWorker' in navigator) {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                for (let registration of registrations) {
+                    await registration.unregister();
+                }
+            }
+
+            // 3. บังคับรีโหลดหน้าเว็บใหม่สดๆ จาก Server
             window.location.reload(true);
+        } catch (error) {
+            alert("เกิดข้อผิดพลาดในการอัปเดต กรุณาลองรีเฟรชด้วยตนเอง");
         }
     }
 }
