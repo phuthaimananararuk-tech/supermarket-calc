@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>เทียบคุ้ม (v1.6)</title>
+    <title>เทียบคุ้ม (v1.7)</title>
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="เทียบคุ้ม (v1.6)">
+    <meta name="apple-mobile-web-app-title" content="เทียบคุ้ม (v1.7)">
 </head>
 <body>
     <div class="app-container">
         <header class="app-header">
-            <h2>เทียบคุ้ม <span class="app-version">(v1.6)</span></h2>
+            <h2>เทียบคุ้ม <span class="app-version">(v1.7)</span></h2>
             <button onclick="openHistoryModal()" class="btn-history" title="ประวัติการบันทึก">📜 ประวัติ</button>
         </header>
         
@@ -21,8 +21,8 @@
         <div class="product-card card-a">
             <h3>สินค้า A <span id="badgeA" class="badge"></span></h3>
             <div class="input-group">
-                <input type="number" id="priceA" placeholder="ราคา" inputmode="decimal" oninput="comparePrice()">
-                <input type="number" id="weightA" placeholder="ปริมาณ" inputmode="decimal" oninput="comparePrice()">
+                <input type="number" id="priceA" placeholder="ราคา" inputmode="decimal" onfocus="handleFocus(this)" onblur="handleBlur(this)" oninput="comparePrice()">
+                <input type="number" id="weightA" placeholder="ปริมาณ" inputmode="decimal" onfocus="handleFocus(this)" onblur="handleBlur(this)" oninput="comparePrice()">
             </div>
         </div>
 
@@ -30,8 +30,8 @@
         <div class="product-card card-b">
             <h3>สินค้า B <span id="badgeB" class="badge"></span></h3>
             <div class="input-group">
-                <input type="number" id="priceB" placeholder="ราคา" inputmode="decimal" oninput="comparePrice()">
-                <input type="number" id="weightB" placeholder="ปริมาณ" inputmode="decimal" oninput="comparePrice()">
+                <input type="number" id="priceB" placeholder="ราคา" inputmode="decimal" onfocus="handleFocus(this)" onblur="handleBlur(this)" oninput="comparePrice()">
+                <input type="number" id="weightB" placeholder="ปริมาณ" inputmode="decimal" onfocus="handleFocus(this)" onblur="handleBlur(this)" oninput="comparePrice()">
             </div>
         </div>
 
@@ -39,8 +39,8 @@
         <div class="product-card card-c">
             <h3>สินค้า C <span id="badgeC" class="badge"></span></h3>
             <div class="input-group">
-                <input type="number" id="priceC" placeholder="ราคา" inputmode="decimal" oninput="comparePrice()">
-                <input type="number" id="weightC" placeholder="ปริมาณ" inputmode="decimal" oninput="comparePrice()">
+                <input type="number" id="priceC" placeholder="ราคา" inputmode="decimal" onfocus="handleFocus(this)" onblur="handleBlur(this)" oninput="comparePrice()">
+                <input type="number" id="weightC" placeholder="ปริมาณ" inputmode="decimal" onfocus="handleFocus(this)" onblur="handleBlur(this)" oninput="comparePrice()">
             </div>
         </div>
 
@@ -48,6 +48,11 @@
             <button onclick="promptSaveRecord()" class="btn-save" id="btnSave" disabled>💾 บันทึกรายการนี้</button>
             <button onclick="clearFields()" class="btn-clear">ล้าง</button>
         </div>
+
+        <!-- เครดิตผู้พัฒนา -->
+        <footer class="app-footer">
+            <small>by Phuthai Mananararuk & Gemini</small>
+        </footer>
     </div>
 
     <!-- Modal แสดงประวัติสินค้า -->
