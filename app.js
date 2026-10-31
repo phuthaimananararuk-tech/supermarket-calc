@@ -1,4 +1,19 @@
 let currentCalculationResult = null;
+let activeFieldInitialValue = "";
+
+// เมื่อแตะ/คลิกช่องกรอกข้อมูล ให้เคลียร์ค่าทันที แต่จำค่าเดิมไว้
+function handleFocus(input) {
+    activeFieldInitialValue = input.value;
+    input.value = "";
+}
+
+// ถ้าออกจากช่องกรอกโดยไม่ได้พิมพ์อะไรใหม่เลย ให้คืนค่าเดิมกลับมา
+function handleBlur(input) {
+    if (input.value === "" && activeFieldInitialValue !== "") {
+        input.value = activeFieldInitialValue;
+        comparePrice();
+    }
+}
 
 function comparePrice() {
     let priceA = parseFloat(document.getElementById('priceA').value);
@@ -80,7 +95,6 @@ function promptSaveRecord() {
     let cleanName = productName.trim();
     let history = JSON.parse(localStorage.getItem('price_calc_history') || '[]');
 
-    // ตรวจสอบชื่อซ้ำ (ไม่ให้บันทึกซ้ำ)
     let existingIndex = history.findIndex(item => item.name.toLowerCase() === cleanName.toLowerCase());
     if (existingIndex !== -1) {
         alert(`❌ มีชื่อ "${cleanName}" ในประวัติอยู่แล้ว!\nกรุณาใช้ชื่ออื่น หรือลบรายการเดิมออกก่อน`);
