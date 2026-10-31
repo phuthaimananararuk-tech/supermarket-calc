@@ -12,8 +12,9 @@
 </head>
 <body>
     <div class="app-container">
-        <h2>⚖️ เทียบความคุ้มค่า</h2>
+        <h2>⚖️ เทียบความคุ้มค่า (3 ชิ้น)</h2>
         
+        <!-- สินค้า A -->
         <div class="product-card card-a">
             <h3>สินค้า A</h3>
             <div class="input-group">
@@ -22,11 +23,21 @@
             </div>
         </div>
 
+        <!-- สินค้า B -->
         <div class="product-card card-b">
             <h3>สินค้า B</h3>
             <div class="input-group">
                 <input type="number" id="priceB" placeholder="ราคา (บาท)" inputmode="decimal" oninput="comparePrice()">
                 <input type="number" id="weightB" placeholder="ปริมาณ" inputmode="decimal" oninput="comparePrice()">
+            </div>
+        </div>
+
+        <!-- สินค้า C (เพิ่มใหม่) -->
+        <div class="product-card card-c">
+            <h3>สินค้า C</h3>
+            <div class="input-group">
+                <input type="number" id="priceC" placeholder="ราคา (บาท)" inputmode="decimal" oninput="comparePrice()">
+                <input type="number" id="weightC" placeholder="ปริมาณ" inputmode="decimal" oninput="comparePrice()">
             </div>
         </div>
 
