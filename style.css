@@ -7,8 +7,8 @@
 }
 
 body {
-    background-color: #0d1117;
-    color: #f8fafc;
+    background-color: #0b0f19; /* พื้นหลังมืดสนิท */
+    color: #f1f5f9;
     display: flex;
     justify-content: center;
     padding: 16px 12px;
@@ -23,88 +23,277 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
 }
 
 h2 {
     font-size: 18px;
     font-weight: 700;
-    color: #ffffff;
+    color: #00f0ff; /* นีออนฟ้า */
     letter-spacing: -0.02em;
+    text-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
     display: flex;
     align-items: center;
     gap: 6px;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
 }
 
 .app-version {
     font-size: 11px;
     font-weight: 600;
-    color: #00f0ff;
-    background: rgba(0, 240, 255, 0.1);
-    border: 1px solid rgba(0, 240, 255, 0.3);
+    color: #0b0f19;
+    background: #00f0ff;
     padding: 1px 6px;
     border-radius: 6px;
 }
 
-.header-actions {
-    display: flex;
-    gap: 6px;
-}
-
-.btn-update, .btn-history {
+.btn-history {
     background: #1e293b;
     border: 1px solid #334155;
     padding: 6px 10px;
     border-radius: 8px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     color: #cbd5e1;
     cursor: pointer;
+}
+
+.product-card {
+    background: #111827;
+    padding: 12px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    border: 1px solid #1f2937;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* เส้นขอบนีออนสดสำหรับแต่ละการ์ด */
+.card-a { border-left: 4px solid #00f0ff; } /* นีออนฟ้า */
+.card-b { border-left: 4px solid #39ff14; } /* นีออนเขียว */
+.card-c { border-left: 4px solid #ff007f; } /* นีออนชมพู/ส้ม */
+
+h3 {
+    margin-bottom: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 5px;
+}
+
+.badge-best {
+    background-color: rgba(57, 255, 20, 0.15);
+    color: #39ff14;
+    border: 1px solid #39ff14;
+    text-shadow: 0 0 5px rgba(57, 255, 20, 0.5);
+}
+
+.badge-worse {
+    background-color: rgba(255, 0, 127, 0.15);
+    color: #ff007f;
+    border: 1px solid #ff007f;
+}
+
+.input-group {
+    display: flex;
+    gap: 8px;
+}
+
+input {
+    width: 50%;
+    padding: 10px 8px; 
+    border: 1.5px solid #374151;
+    border-radius: 8px;
+    font-size: 16px; 
+    font-weight: 700;
+    text-align: center;
+    background: #1f2937;
+    color: #ffffff;
     transition: all 0.2s ease;
 }
 
-.btn-update:active, .btn-history:active {
-    background: #334155;
+input:focus {
+    border-color: #00f0ff;
+    background: #111827;
+    outline: none;
+    box-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+}
+
+input::placeholder {
+    font-size: 13px;
+    font-weight: 400;
+    color: #6b7280;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+button {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.15s ease;
+}
+
+.btn-save {
+    flex: 3;
+    padding: 10px;
+    background-color: #00f0ff;
+    color: #0b0f19;
+    font-size: 14px;
+    font-weight: 700;
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+}
+
+.btn-save:disabled {
+    background-color: #1e293b;
+    color: #475569;
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+.btn-save:not(:disabled):active {
+    background-color: #00c4d4;
+}
+
+.btn-clear {
+    flex: 1;
+    padding: 10px;
+    background-color: #1e293b;
+    color: #94a3b8;
+    border: 1px solid #334155;
+    font-size: 14px;
+}
+
+.btn-clear:active { background-color: #334155; }
+
+.app-footer {
+    text-align: center;
+    margin-top: 16px;
+    color: #475569;
+    font-size: 11px;
+}
+
+/* Modal Dark Neon */
+.modal {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(3, 7, 18, 0.8);
+    backdrop-filter: blur(6px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+    z-index: 100;
+}
+
+.modal-content {
+    background: #111827;
+    border: 1px solid #1f2937;
+    width: 100%;
+    max-width: 360px;
+    border-radius: 16px;
+    padding: 16px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #1f2937;
+    padding-bottom: 8px;
+}
+
+.modal-header h3 {
+    font-size: 15px;
+    color: #f8fafc;
+}
+
+.btn-close {
+    background: none;
+    font-size: 16px;
+    color: #94a3b8;
+    padding: 2px 6px;
+}
+
+.history-list {
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.history-item {
+    background: #1f2937;
+    padding: 10px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #374151;
+}
+
+.history-info strong {
+    font-size: 13px;
+    color: #f1f5f9;
+}
+
+.history-info small {
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+.btn-del {
+    background: rgba(255, 0, 127, 0.15);
+    color: #ff007f;
+    border: 1px solid #ff007f;
+    padding: 6px 10px;
+    font-size: 11px;
+    border-radius: 6px;
+}
+
+.modal-footer {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid #1f2937;
+}
+
+.btn-update {
+    width: 100%;
+    padding: 10px;
+    background: #1e293b;
+    color: #38bdf8;
+    border: 1px solid #0284c7;
+    font-size: 13px;
+}
+
+.btn-update:active {
+    background: #0284c7;
     color: #ffffff;
 }
 
-/* การ์ดสินค้า Neon */
-.product-card {
-    background: #161b22;
-    padding: 12px;
-    border-radius: 12px;
-    margin-bottom: 10px;
-    border: 1px solid #21262d;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+.empty-history {
+    text-align: center;
+    color: #64748b;
+    padding: 20px 0;
+    font-size: 13px;
 }
 
-.card-a { 
-    border-left: 4px solid #00f0ff; 
-    box-shadow: -3px 0 10px rgba(0, 240, 255, 0.15);
-}
-.card-b { 
-    border-left: 4px solid #00ff9d; 
-ยินดีเลยครับ! สรุปการอัปเดตสำหรับเวอร์ชันนี้ (v2.0) จัดเต็มให้ครบทั้ง 3 ข้อเลยครับ:
-
-1. **โหมด Offline-First 100%:** ดึงไฟล์จากแคชในเครื่องขึ้นมาแสดงผลทันที ปิดจุดอับสัญญาณเน็ต ตัดปัญหาจอดำหรือหน้าจอโหลดช้าตอนเปิดแอป
-2. **ระบบปุ่ม "อัปเดต":** เพิ่มปุ่ม `🔄 อัปเดต` ในหน้าประวัติ ให้ผู้ใช้กดสั่งการล้างแคชเก่าแล้วโหลดเวอร์ชันล่าสุดจาก GitHub Pages ได้ทันทีด้วยตัวเอง
-3. **ดีไซน์ธีมมืดสไตล์ Neon (Dark Neon Mode):** ปรับพื้นหลังเป็นโทนมืดสนิท สะอาดตา ตัดด้วยสีนีออนเด่นๆ (ฟ้า นีออนเขียว นีออนส้ม) ให้ความรู้สึก modern, ไฮเทค และประหยัดแบตเตอรี่หน้าจอมือถือ (OLED) ได้ดีมากครับ
-
-คัดลอกโค้ดทั้ง 5 ไฟล์ชุดใหม่นี้ไปวางแทนที่ของเดิมได้เลยครับ:
-
----
-
-### 📂 อัปเดตโค้ดทั้ง 5 ไฟล์ (v2.0 Dark Neon)
-
-#### 1. `manifest.json` (เปลี่ยนสีพื้นหลังธีมเป็นสีมืด)
-```json
-{
-  "name": "เทียบคุ้ม (v2.0) - PriceCalc",
-  "short_name": "เทียบคุ้ม",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#0b0f19",
-  "theme_color": "#00f0ff",
-  "icons": []
-}
+.hidden { display: none; }
