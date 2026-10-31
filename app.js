@@ -166,33 +166,17 @@ function deleteHistoryItem(event, id) {
     openHistoryModal();
 }
 
-// 🔄 ฟังก์ชันบังคับอัปเดตแอป สั่งเคลียร์แคชและดึงเวอร์ชันล่าสุดจาก GitHub Pages
+// 🔄 กดปุ่มเวอร์ชันแล้วอัปเดตทันทีแบบเงียบๆ ไม่มี Confirm หรือ Alert
 async function forceAppUpdate() {
-    if (!navigator.onLine) {
-        alert("⚠️ โปรดเชื่อมต่ออินเทอร์เน็ตก่อนทำการกดอัปเดตแอป");
-        return;
+    if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map(name => caches.delete(name)));
     }
-
-    if (confirm("ต้องการอัปเดตแอปเป็นเวอร์ชันล่าสุดทันทีใช่หรือไม่?")) {
-        try {
-            // 1. ล้าง Cache Storage ทั้งหมด
-            if ('caches' in window) {
-                const cacheNames = await caches.keys();
-                await Promise.all(cacheNames.map(name => caches.delete(name)));
-            }
-
-            // 2. สั่ง Unregister Service Worker เก่า
-            if ('serviceWorker' in navigator) {
-                const registrations = await navigator.serviceWorker.getRegistrations();
-                for (let registration of registrations) {
-                    await registration.unregister();
-                }
-            }
-
-            // 3. บังคับรีโหลดหน้าเว็บใหม่สดๆ จาก Server
-            window.location.reload(true);
-        } catch (error) {
-            alert("เกิดข้อผิดพลาดในการอัปเดต กรุณาลองรีเฟรชด้วยตนเอง");
+    if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (let registration of registrations) {
+            await registration.unregister();
         }
     }
+    window.location.reload(true);
 }
