@@ -26,7 +26,6 @@ body {
     margin-bottom: 12px;
 }
 
-/* จัดสไตล์โลโก้รูปภาพคู่กับชื่อแอปและปุ่มเวอร์ชัน */
 .brand-title {
     display: flex;
     align-items: center;
