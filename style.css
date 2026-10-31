@@ -36,7 +36,6 @@ h2 {
     gap: 6px;
 }
 
-/* สไตล์สำหรับเวอร์ชันแอป */
 .app-version {
     font-size: 12px;
     font-weight: 500;
@@ -170,6 +169,14 @@ button {
 }
 
 .btn-clear:active { background-color: #cbd5e1; }
+
+/* เครดิตผู้พัฒนาด้านล่างสุด */
+.app-footer {
+    text-align: center;
+    margin-top: 16px;
+    color: #94a3b8;
+    font-size: 11px;
+}
 
 .modal {
     position: fixed;
