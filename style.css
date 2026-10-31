@@ -7,7 +7,7 @@
 }
 
 body {
-    background-color: #cbd5e1; /* ปรับสีเทาให้เข้มขึ้นอีกหน่อย */
+    background-color: #cbd5e1; /* สีเทาเข้มขึ้น */
     color: #1e293b;
     display: flex;
     justify-content: center;
@@ -36,7 +36,7 @@ h2 {
     gap: 8px;
 }
 
-/* ปุ่มเวอร์ชัน (ไม่มี emoticon และมีเอฟเฟกต์กระพริบเมื่อกด) */
+/* ปุ่มเวอร์ชัน (เพิ่ม Feedback ชัดเจนบน iPhone ด้วย active state) */
 .app-version {
     font-size: 11px;
     font-weight: 600;
@@ -46,15 +46,15 @@ h2 {
     padding: 3px 8px;
     border-radius: 6px;
     cursor: pointer;
-    transition: all 0.1s ease;
+    transition: transform 0.1s ease, opacity 0.1s ease;
 }
 
 .app-version:active {
+    opacity: 0.6;
+    transform: scale(0.90);
     animation: flashEffect 0.3s ease;
-    transform: scale(0.92);
 }
 
-/* อนิเมชันกระพริบตอนกด */
 @keyframes flashEffect {
     0% { background-color: #2563eb; color: #ffffff; }
     50% { background-color: #93c5fd; color: #1e293b; }
@@ -72,19 +72,19 @@ h2 {
     cursor: pointer;
 }
 
+/* ปรับสีพื้นหลังการ์ดสินค้าให้เป็นสีเทาอ่อนกว่าพื้นหลังหลักเล็กน้อย (#e2e8f0) */
 .product-card {
-    background: #ffffff;
+    background: #e2e8f0;
     padding: 12px;
     border-radius: 12px;
     margin-bottom: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    border: 1px solid #cbd5e1;
+    border: 1px solid #b8c2cc;
 }
 
-/* สีพาสเทลสบายตา แยกตามการ์ดสินค้า */
-.card-a { border-left: 4px solid #3b82f6; } /* ฟ้าอ่อน */
-.card-b { border-left: 4px solid #10b981; } /* เขียวมินต์ */
-.card-c { border-left: 4px solid #f59e0b; } /* ส้มพีช */
+.card-a { border-left: 4px solid #3b82f6; }
+.card-b { border-left: 4px solid #10b981; }
+.card-c { border-left: 4px solid #f59e0b; }
 
 h3 {
     margin-bottom: 6px;
@@ -168,8 +168,8 @@ button {
 }
 
 .btn-save:disabled {
-    background-color: #e2e8f0;
-    color: #94a3b8;
+    background-color: #cbd5e1;
+    color: #64748b;
     cursor: not-allowed;
 }
 
