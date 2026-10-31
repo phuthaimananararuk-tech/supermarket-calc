@@ -1,3 +1,5 @@
+let currentCalculationResult = null;
+
 function comparePrice() {
     let priceA = parseFloat(document.getElementById('priceA').value);
     let weightA = parseFloat(document.getElementById('weightA').value);
@@ -9,8 +11,8 @@ function comparePrice() {
     let badgeA = document.getElementById('badgeA');
     let badgeB = document.getElementById('badgeB');
     let badgeC = document.getElementById('badgeC');
+    let btnSave = document.getElementById('btnSave');
 
-    // เคลียร์สถานะป้ายกำกับเดิมก่อน
     badgeA.innerText = ''; badgeA.className = 'badge';
     badgeB.innerText = ''; badgeB.className = 'badge';
     badgeC.innerText = ''; badgeC.className = 'badge';
@@ -21,30 +23,33 @@ function comparePrice() {
 
     let countValid = (validA ? 1 : 0) + (validB ? 1 : 0) + (validC ? 1 : 0);
 
-    // ต้องกรอกอย่างน้อย 2 ชิ้นถึงจะเริ่มเทียบ
-    if (countValid < 2) return;
+    if (countValid < 2) {
+        btnSave.disabled = true;
+        currentCalculationResult = null;
+        return;
+    }
 
     let items = [];
-    if (validA) items.push({ id: 'A', unit: priceA / weightA, badge: badgeA });
-    if (validB) items.push({ id: 'B', unit: priceB / weightB, badge: badgeB });
-    if (validC) items.push({ id: 'C', unit: priceC / weightC, badge: badgeC });
+    if (validA) items.push({ id: 'A', name: 'สินค้า A', price: priceA, weight: weightA, unit: priceA / weightA, badge: badgeA });
+    if (validB) items.push({ id: 'B', name: 'สินค้า B', price: priceB, weight: weightB, unit: priceB / weightB, badge: badgeB });
+    if (validC) items.push({ id: 'C', name: 'สินค้า C', price: priceC, weight: weightC, unit: priceC / weightC, badge: badgeC });
 
-    // เรียงจากถูกที่สุดไปแพงที่สุด
     items.sort((x, y) => x.unit - y.unit);
 
     let best = items[0];
-
-    // แสดงผลตัวที่คุ้มที่สุด
     best.badge.innerText = `คุ้มค่าที่สุด`;
     best.badge.classList.add('badge-best');
 
-    // แสดงผลเปรียบเทียบตัวอื่นๆ เป็นเปอร์เซ็นต์ส่วนต่างติดลบ
     for (let i = 1; i < items.length; i++) {
         let item = items[i];
-        let diffPercent = ((best.unit - item.unit) / best.unit) * 100; // ได้ค่าติดลบ เช่น -11%
+        let diffPercent = ((best.unit - item.unit) / best.unit) * 100; 
         item.badge.innerText = `${diffPercent.toFixed(0)}%`;
         item.badge.classList.add('badge-worse');
     }
+
+    // เก็บข้อมูลผลลัพธ์ไว้เผื่อกดปุ่มบันทึก
+    currentCalculationResult = { items, best };
+    btnSave.disabled = false;
 }
 
 function clearFields() {
@@ -55,11 +60,68 @@ function clearFields() {
     document.getElementById('priceC').value = '';
     document.getElementById('weightC').value = '';
     
-    let badgeA = document.getElementById('badgeA');
-    let badgeB = document.getElementById('badgeB');
-    let badgeC = document.getElementById('badgeC');
+    document.getElementById('badgeA').innerText = ''; document.getElementById('badgeA').className = 'badge';
+    document.getElementById('badgeB').innerText = ''; document.getElementById('badgeB').className = 'badge';
+    document.getElementById('badgeC').innerText = ''; document.getElementById('badgeC').className = 'badge';
+    
+    document.getElementById('btnSave').disabled = true;
+    currentCalculationResult = null;
+}
 
-    badgeA.innerText = ''; badgeA.className = 'badge';
-    badgeB.innerText = ''; badgeB.className = 'badge';
-    badgeC.innerText = ''; badgeC.className = 'badge';
+// ระบบจัดการประวัติ (LocalStorage)
+function promptSaveRecord() {
+    if (!currentCalculationResult) return;
+
+    let productName = prompt("กรอกชื่อสินค้าที่ต้องการบันทึก (เช่น น้ำยาปรับผ้านุ่ม):");
+    if (!productName || productName.trim() === "") return;
+
+    let history = JSON.parse(localStorage.getItem('price_calc_history') || '[]');
+    
+    let record = {
+        id: Date.now(),
+        name: productName.trim(),
+        date: new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' }),
+        bestUnit: currentCalculationResult.best.unit,
+        bestName: currentCalculationResult.best.name
+    };
+
+    history.unshift(record); // เอาไว้บนสุด
+    if (history.length > 20) history.pop(); // เก็บไว้สูงสุด 20 รายการ
+
+    localStorage.setItem('price_calc_history', JSON.stringify(history));
+    alert("บันทึกข้อมูลเรียบร้อยแล้ว!");
+}
+
+function openHistoryModal() {
+    let modal = document.getElementById('historyModal');
+    let listContainer = document.getElementById('historyList');
+    
+    let history = JSON.parse(localStorage.getItem('price_calc_history') || '[]');
+
+    if (history.length === 0) {
+        listContainer.innerHTML = `<p class="empty-history">ยังไม่มีประวัติการบันทึก</p>`;
+    } else {
+        listContainer.innerHTML = history.map(item => `
+            <div class="history-item">
+                <div class="history-info">
+                    <strong>${item.name}</strong>
+                    <small>${item.date} — แนะนำ ${item.bestName} (${item.bestUnit.toFixed(2)} บ./หน่วย)</small>
+                </div>
+                <button onclick="deleteHistoryItem(${item.id})" class="btn-del">ลบ</button>
+            </div>
+        `).join('');
+    }
+
+    modal.classList.remove('hidden');
+}
+
+function closeHistoryModal() {
+    document.getElementById('historyModal').classList.add('hidden');
+}
+
+function deleteHistoryItem(id) {
+    let history = JSON.parse(localStorage.getItem('price_calc_history') || '[]');
+    history = history.filter(item => item.id !== id);
+    localStorage.setItem('price_calc_history', JSON.stringify(history));
+    openHistoryModal(); // รีเฟรชรายการใน Modal
 }
