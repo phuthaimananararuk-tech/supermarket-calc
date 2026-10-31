@@ -6,46 +6,45 @@ function comparePrice() {
     let priceC = parseFloat(document.getElementById('priceC').value);
     let weightC = parseFloat(document.getElementById('weightC').value);
 
-    let resultCard = document.getElementById('resultCard');
-    let resultText = document.getElementById('resultText');
-    let resultDetail = document.getElementById('resultDetail');
+    let badgeA = document.getElementById('badgeA');
+    let badgeB = document.getElementById('badgeB');
+    let badgeC = document.getElementById('badgeC');
 
-    // เงื่อนไข: ต้องกรอกอย่างน้อย 2 ชิ้นขึ้นไปถึงจะเริ่มเทียบความคุ้มค่าให้
+    // เคลียร์สถานะป้ายกำกับเดิมก่อน
+    badgeA.innerText = ''; badgeA.className = 'badge';
+    badgeB.innerText = ''; badgeB.className = 'badge';
+    badgeC.innerText = ''; badgeC.className = 'badge';
+
     let validA = !isNaN(priceA) && !isNaN(weightA) && weightA > 0;
     let validB = !isNaN(priceB) && !isNaN(weightB) && weightB > 0;
     let validC = !isNaN(priceC) && !isNaN(weightC) && weightC > 0;
 
     let countValid = (validA ? 1 : 0) + (validB ? 1 : 0) + (validC ? 1 : 0);
 
-    if (countValid < 2) {
-        resultCard.classList.add('hidden');
-        return;
-    }
+    // ต้องกรอกอย่างน้อย 2 ชิ้นถึงจะเริ่มเทียบ
+    if (countValid < 2) return;
 
-    // คำนวณราคาต่อหน่วย (เก็บข้อมูลเฉพาะอันที่กรอกครบ)
     let items = [];
-    if (validA) items.push({ name: 'สินค้า A', unit: priceA / weightA });
-    if (validB) items.push({ name: 'สินค้า B', unit: priceB / weightB });
-    if (validC) items.push({ name: 'สินค้า C', unit: priceC / weightC });
+    if (validA) items.push({ id: 'A', unit: priceA / weightA, badge: badgeA });
+    if (validB) items.push({ id: 'B', unit: priceB / weightB, badge: badgeB });
+    if (validC) items.push({ id: 'C', unit: priceC / weightC, badge: badgeC });
 
-    // เรียงลำดับจากถูกที่สุดไปแพงที่สุด
+    // เรียงจากถูกที่สุดไปแพงที่สุด
     items.sort((x, y) => x.unit - y.unit);
 
     let best = items[0];
-    let second = items[1];
 
-    resultCard.classList.remove('hidden');
-    resultCard.className = "result-card success";
+    // แสดงผลตัวที่คุ้มที่สุด
+    best.badge.innerText = `คุ้มค่าที่สุด`;
+    best.badge.classList.add('badge-best');
 
-    let savePercent = ((second.unit - best.unit) / second.unit) * 100;
-    
-    // สร้างข้อความสรุปผล
-    resultText.innerText = `🎉 ${best.name} คุ้มที่สุด!`;
-    
-    let detailsText = `${best.name} (${best.unit.toFixed(2)} บ./หน่วย) ถูกกว่าอันดับรองลงมาประมาณ ${savePercent.toFixed(1)}%\n`;
-    detailsText += `สรุปราคาต่อหน่วย: ` + items.map(i => `${i.name}: ${i.unit.toFixed(2)} บ.`).join(' | ');
-    
-    resultDetail.innerText = detailsText;
+    // แสดงผลเปรียบเทียบตัวอื่นๆ เป็นเปอร์เซ็นต์ส่วนต่างติดลบ
+    for (let i = 1; i < items.length; i++) {
+        let item = items[i];
+        let diffPercent = ((best.unit - item.unit) / best.unit) * 100; // ได้ค่าติดลบ เช่น -11%
+        item.badge.innerText = `${diffPercent.toFixed(0)}%`;
+        item.badge.classList.add('badge-worse');
+    }
 }
 
 function clearFields() {
@@ -56,8 +55,11 @@ function clearFields() {
     document.getElementById('priceC').value = '';
     document.getElementById('weightC').value = '';
     
-    let resultCard = document.getElementById('resultCard');
-    if (resultCard) {
-        resultCard.classList.add('hidden');
-    }
+    let badgeA = document.getElementById('badgeA');
+    let badgeB = document.getElementById('badgeB');
+    let badgeC = document.getElementById('badgeC');
+
+    badgeA.innerText = ''; badgeA.className = 'badge';
+    badgeB.innerText = ''; badgeB.className = 'badge';
+    badgeC.innerText = ''; badgeC.className = 'badge';
 }
