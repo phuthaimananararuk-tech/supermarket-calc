@@ -7,7 +7,7 @@
 }
 
 body {
-    background-color: #f1f5f9; /* ปรับพื้นหลังแอปให้เป็นสีเทาอ่อนสบายตาขึ้น */
+    background-color: #cbd5e1; /* ปรับสีเทาให้เข้มขึ้นอีกหน่อย */
     color: #1e293b;
     display: flex;
     justify-content: center;
@@ -36,7 +36,7 @@ h2 {
     gap: 8px;
 }
 
-/* ปุ่มเวอร์ชันที่เป็นปุ่มอัปเดตในตัว */
+/* ปุ่มเวอร์ชัน (ไม่มี emoticon และมีเอฟเฟกต์กระพริบเมื่อกด) */
 .app-version {
     font-size: 11px;
     font-weight: 600;
@@ -46,12 +46,19 @@ h2 {
     padding: 3px 8px;
     border-radius: 6px;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: all 0.1s ease;
 }
 
 .app-version:active {
-    background: #cbd5e1;
-    transform: scale(0.95);
+    animation: flashEffect 0.3s ease;
+    transform: scale(0.92);
+}
+
+/* อนิเมชันกระพริบตอนกด */
+@keyframes flashEffect {
+    0% { background-color: #2563eb; color: #ffffff; }
+    50% { background-color: #93c5fd; color: #1e293b; }
+    100% { background-color: #e2e8f0; color: #2563eb; }
 }
 
 .btn-history {
@@ -71,7 +78,7 @@ h2 {
     border-radius: 12px;
     margin-bottom: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    border: 1px solid #e2e8f0;
+    border: 1px solid #cbd5e1;
 }
 
 /* สีพาสเทลสบายตา แยกตามการ์ดสินค้า */
@@ -183,7 +190,7 @@ button {
 .app-footer {
     text-align: center;
     margin-top: 16px;
-    color: #64748b;
+    color: #475569;
     font-size: 11px;
 }
 
