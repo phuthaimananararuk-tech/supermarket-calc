@@ -12,11 +12,11 @@
 </head>
 <body>
     <div class="app-container">
-        <h2>⚖️ เทียบความคุ้มค่า (3 ชิ้น)</h2>
+        <h2>⚖️ เทียบความคุ้มค่า</h2>
         
         <!-- สินค้า A -->
         <div class="product-card card-a">
-            <h3>สินค้า A</h3>
+            <h3>สินค้า A <span id="badgeA" class="badge"></span></h3>
             <div class="input-group">
                 <input type="number" id="priceA" placeholder="ราคา (บาท)" inputmode="decimal" oninput="comparePrice()">
                 <input type="number" id="weightA" placeholder="ปริมาณ" inputmode="decimal" oninput="comparePrice()">
@@ -25,16 +25,16 @@
 
         <!-- สินค้า B -->
         <div class="product-card card-b">
-            <h3>สินค้า B</h3>
+            <h3>สินค้า B <span id="badgeB" class="badge"></span></h3>
             <div class="input-group">
                 <input type="number" id="priceB" placeholder="ราคา (บาท)" inputmode="decimal" oninput="comparePrice()">
                 <input type="number" id="weightB" placeholder="ปริมาณ" inputmode="decimal" oninput="comparePrice()">
             </div>
         </div>
 
-        <!-- สินค้า C (เพิ่มใหม่) -->
+        <!-- สินค้า C -->
         <div class="product-card card-c">
-            <h3>สินค้า C</h3>
+            <h3>สินค้า C <span id="badgeC" class="badge"></span></h3>
             <div class="input-group">
                 <input type="number" id="priceC" placeholder="ราคา (บาท)" inputmode="decimal" oninput="comparePrice()">
                 <input type="number" id="weightC" placeholder="ปริมาณ" inputmode="decimal" oninput="comparePrice()">
@@ -42,12 +42,7 @@
         </div>
 
         <div class="button-group">
-            <button onclick="clearFields()" class="btn-clear">ล้างข้อมูลทั้งหมด</button>
-        </div>
-
-        <div id="resultCard" class="result-card hidden">
-            <p id="resultText"></p>
-            <small id="resultDetail"></small>
+            <button onclick="clearFields()" class="btn-clear">ล้าง</button>
         </div>
     </div>
 
