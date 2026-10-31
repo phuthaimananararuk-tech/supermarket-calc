@@ -3,37 +3,49 @@ function comparePrice() {
     let weightA = parseFloat(document.getElementById('weightA').value);
     let priceB = parseFloat(document.getElementById('priceB').value);
     let weightB = parseFloat(document.getElementById('weightB').value);
+    let priceC = parseFloat(document.getElementById('priceC').value);
+    let weightC = parseFloat(document.getElementById('weightC').value);
 
     let resultCard = document.getElementById('resultCard');
     let resultText = document.getElementById('resultText');
     let resultDetail = document.getElementById('resultDetail');
 
-    // ถ้ายังกรอกข้อมูลไม่ครบทุกช่อง ให้ซ่อนการ์ดผลลัพธ์ไว้ก่อน
-    if (isNaN(priceA) || isNaN(weightA) || isNaN(priceB) || isNaN(weightB) || weightA <= 0 || weightB <= 0) {
+    // เงื่อนไข: ต้องกรอกอย่างน้อย 2 ชิ้นขึ้นไปถึงจะเริ่มเทียบความคุ้มค่าให้
+    let validA = !isNaN(priceA) && !isNaN(weightA) && weightA > 0;
+    let validB = !isNaN(priceB) && !isNaN(weightB) && weightB > 0;
+    let validC = !isNaN(priceC) && !isNaN(weightC) && weightC > 0;
+
+    let countValid = (validA ? 1 : 0) + (validB ? 1 : 0) + (validC ? 1 : 0);
+
+    if (countValid < 2) {
         resultCard.classList.add('hidden');
         return;
     }
 
-    let unitA = priceA / weightA;
-    let unitB = priceB / weightB;
-    
-    resultCard.classList.remove('hidden');
+    // คำนวณราคาต่อหน่วย (เก็บข้อมูลเฉพาะอันที่กรอกครบ)
+    let items = [];
+    if (validA) items.push({ name: 'สินค้า A', unit: priceA / weightA });
+    if (validB) items.push({ name: 'สินค้า B', unit: priceB / weightB });
+    if (validC) items.push({ name: 'สินค้า C', unit: priceC / weightC });
 
-    if (unitA < unitB) {
-        let savePercent = ((unitB - unitA) / unitB) * 100;
-        resultCard.className = "result-card success";
-        resultText.innerText = "🎉 สินค้า A คุ้มกว่า!";
-        resultDetail.innerText = `A ถูกกว่า B ประมาณ ${savePercent.toFixed(1)}% (A: ${unitA.toFixed(2)} บาท/หน่วย vs B: ${unitB.toFixed(2)} บาท/หน่วย)`;
-    } else if (unitB < unitA) {
-        let savePercent = ((unitA - unitB) / unitA) * 100;
-        resultCard.className = "result-card success";
-        resultText.innerText = "🎉 สินค้า B คุ้มกว่า!";
-        resultDetail.innerText = `B ถูกกว่า A ประมาณ ${savePercent.toFixed(1)}% (B: ${unitB.toFixed(2)} บาท/หน่วย vs A: ${unitA.toFixed(2)} บาท/หน่วย)`;
-    } else {
-        resultCard.className = "result-card";
-        resultText.innerText = "⚖️ ราคาคุ้มค่าเท่ากัน";
-        resultDetail.innerText = `ตกหน่วยละ ${unitA.toFixed(2)} บาทเท่ากันครับ`;
-    }
+    // เรียงลำดับจากถูกที่สุดไปแพงที่สุด
+    items.sort((x, y) => x.unit - y.unit);
+
+    let best = items[0];
+    let second = items[1];
+
+    resultCard.classList.remove('hidden');
+    resultCard.className = "result-card success";
+
+    let savePercent = ((second.unit - best.unit) / second.unit) * 100;
+    
+    // สร้างข้อความสรุปผล
+    resultText.innerText = `🎉 ${best.name} คุ้มที่สุด!`;
+    
+    let detailsText = `${best.name} (${best.unit.toFixed(2)} บ./หน่วย) ถูกกว่าอันดับรองลงมาประมาณ ${savePercent.toFixed(1)}%\n`;
+    detailsText += `สรุปราคาต่อหน่วย: ` + items.map(i => `${i.name}: ${i.unit.toFixed(2)} บ.`).join(' | ');
+    
+    resultDetail.innerText = detailsText;
 }
 
 function clearFields() {
@@ -41,6 +53,8 @@ function clearFields() {
     document.getElementById('weightA').value = '';
     document.getElementById('priceB').value = '';
     document.getElementById('weightB').value = '';
+    document.getElementById('priceC').value = '';
+    document.getElementById('weightC').value = '';
     
     let resultCard = document.getElementById('resultCard');
     if (resultCard) {
