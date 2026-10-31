@@ -77,13 +77,21 @@ function promptSaveRecord() {
     let productName = prompt("กรอกชื่อสินค้าที่ต้องการบันทึก (เช่น น้ำยาปรับผ้านุ่ม):");
     if (!productName || productName.trim() === "") return;
 
+    let cleanName = productName.trim();
     let history = JSON.parse(localStorage.getItem('price_calc_history') || '[]');
-    
+
+    // ตรวจสอบชื่อซ้ำ (ไม่ให้บันทึกซ้ำ)
+    let existingIndex = history.findIndex(item => item.name.toLowerCase() === cleanName.toLowerCase());
+    if (existingIndex !== -1) {
+        alert(`❌ มีชื่อ "${cleanName}" ในประวัติอยู่แล้ว!\nกรุณาใช้ชื่ออื่น หรือลบรายการเดิมออกก่อน`);
+        return;
+    }
+
     let record = {
         id: Date.now(),
-        name: productName.trim(),
+        name: cleanName,
         date: new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' }),
-        inputs: currentCalculationResult.inputs, // บันทึกค่า input ทั้งหมดเก็บไว้ด้วย
+        inputs: currentCalculationResult.inputs,
         bestUnit: currentCalculationResult.best.unit,
         bestName: currentCalculationResult.best.name
     };
@@ -92,7 +100,7 @@ function promptSaveRecord() {
     if (history.length > 20) history.pop();
 
     localStorage.setItem('price_calc_history', JSON.stringify(history));
-    alert("บันทึกข้อมูลเรียบร้อยแล้ว!");
+    alert("✅ บันทึกข้อมูลเรียบร้อยแล้ว!");
 }
 
 function openHistoryModal() {
@@ -122,7 +130,6 @@ function closeHistoryModal() {
     document.getElementById('historyModal').classList.add('hidden');
 }
 
-// กดที่ประวัติเพื่อโหลดค่าเดิมกลับมาใส่ฟอร์ม
 function loadHistoryItem(id) {
     let history = JSON.parse(localStorage.getItem('price_calc_history') || '[]');
     let target = history.find(item => item.id === id);
@@ -136,11 +143,11 @@ function loadHistoryItem(id) {
     document.getElementById('weightC').value = isNaN(target.inputs.weightC) ? '' : target.inputs.weightC;
 
     closeHistoryModal();
-    comparePrice(); // คำนวณใหม่ทันที
+    comparePrice();
 }
 
 function deleteHistoryItem(event, id) {
-    event.stopPropagation(); // ป้องกันไม่ให้กดโดน event ของตัวแม่
+    event.stopPropagation();
     let history = JSON.parse(localStorage.getItem('price_calc_history') || '[]');
     history = history.filter(item => item.id !== id);
     localStorage.setItem('price_calc_history', JSON.stringify(history));
