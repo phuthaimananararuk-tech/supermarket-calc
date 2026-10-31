@@ -3,18 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>เทียบคุ้ม (v1.7)</title>
+    <title>เทียบคุ้ม (v2.0)</title>
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="เทียบคุ้ม (v1.7)">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="เทียบคุ้ม (v2.0)">
+    <style>
+        /* บังคับสีพื้นหลังมืดตั้งแต่เสี้ยววินาทีแรกที่เปิดแอป ป้องกันจอดำหรือจอขาวกระพริบ */
+        body { background-color: #0d1117; color: #f8fafc; margin: 0; }
+    </style>
 </head>
 <body>
     <div class="app-container">
         <header class="app-header">
-            <h2>เทียบคุ้ม <span class="app-version">(v1.7)</span></h2>
-            <button onclick="openHistoryModal()" class="btn-history" title="ประวัติการบันทึก">📜 ประวัติ</button>
+            <h2>เทียบคุ้ม <span class="app-version">(v2.0)</span></h2>
+            <div class="header-actions">
+                <button onclick="forceUpdateApp()" class="btn-update" title="อัปเดตแอป">🔄 อัปเดต</button>
+                <button onclick="openHistoryModal()" class="btn-history" title="ประวัติการบันทึก">📜 ประวัติ</button>
+            </div>
         </header>
         
         <!-- สินค้า A -->
