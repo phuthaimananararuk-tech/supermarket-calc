@@ -1,9 +1,9 @@
 {
-  "name": "เทียบคุ้ม (v2.2) - PriceCalc",
+  "name": "เทียบคุ้ม (v2.3) - PriceCalc",
   "short_name": "เทียบคุ้ม",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#cbd5e1",
+  "background_color": "#94a3b8",
   "theme_color": "#2563eb",
   "icons": []
 }
