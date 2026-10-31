@@ -1,6 +1,35 @@
 let currentCalculationResult = null;
 let activeFieldInitialValue = "";
 
+// โหลดข้อมูล Auto-Save เมื่อเปิดแอป
+window.addEventListener('DOMContentLoaded', () => {
+    let savedState = localStorage.getItem('price_calc_autofill');
+    if (savedState) {
+        try {
+            let data = JSON.parse(savedState);
+            document.getElementById('priceA').value = data.priceA || '';
+            document.getElementById('weightA').value = data.weightA || '';
+            document.getElementById('priceB').value = data.priceB || '';
+            document.getElementById('weightB').value = data.weightB || '';
+            document.getElementById('priceC').value = data.priceC || '';
+            document.getElementById('weightC').value = data.weightC || '';
+            comparePrice();
+        } catch (e) {}
+    }
+});
+
+function saveAutoState() {
+    let inputs = {
+        priceA: document.getElementById('priceA').value,
+        weightA: document.getElementById('weightA').value,
+        priceB: document.getElementById('priceB').value,
+        weightB: document.getElementById('weightB').value,
+        priceC: document.getElementById('priceC').value,
+        weightC: document.getElementById('weightC').value
+    };
+    localStorage.setItem('price_calc_autofill', JSON.stringify(inputs));
+}
+
 function handleFocus(input) {
     activeFieldInitialValue = input.value;
     input.value = "";
@@ -11,6 +40,11 @@ function handleBlur(input) {
         input.value = activeFieldInitialValue;
         comparePrice();
     }
+}
+
+function handleInputChange() {
+    saveAutoState();
+    comparePrice();
 }
 
 function comparePrice() {
@@ -36,7 +70,8 @@ function comparePrice() {
 
     let countValid = (validA ? 1 : 0) + (validB ? 1 : 0) + (validC ? 1 : 0);
 
-    if (countValid < 2) {
+    // เงื่อนไข: ต้องมีอย่างน้อย 1 ชนิดที่ใส่ครบทั้งราคาและจำนวน
+    if (countValid < 1) {
         btnSave.disabled = true;
         currentCalculationResult = null;
         return;
@@ -82,6 +117,7 @@ function clearFields() {
     
     document.getElementById('btnSave').disabled = true;
     currentCalculationResult = null;
+    localStorage.removeItem('price_calc_autofill');
 }
 
 function promptSaveRecord() {
@@ -94,9 +130,16 @@ function promptSaveRecord() {
     let history = JSON.parse(localStorage.getItem('price_calc_history') || '[]');
 
     let existingIndex = history.findIndex(item => item.name.toLowerCase() === cleanName.toLowerCase());
+    
     if (existingIndex !== -1) {
-        alert(`❌ มีชื่อ "${cleanName}" ในประวัติอยู่แล้ว!\nกรุณาใช้ชื่ออื่น หรือลบรายการเดิมออกก่อน`);
-        return;
+        let confirmOverwrite = confirm(`❌ มีชื่อ "${cleanName}" ในประวัติอยู่แล้ว!\nต้องการเซฟทับรายการเดิมหรือไม่?`);
+        if (!confirmOverwrite) {
+            // ถ้ายกเลิก ให้เรียก prompt ซ้ำโดยไม่ล้างค่าข้อมูลที่ผู้ใช้กรอกค้างไว้
+            setTimeout(() => promptSaveRecord(), 100);
+            return;
+        }
+        // ถ้าตอบตกลง ให้ลบรายการเก่าออกเพื่อเตรียมเซฟทับ
+        history.splice(existingIndex, 1);
     }
 
     let record = {
@@ -154,6 +197,7 @@ function loadHistoryItem(id) {
     document.getElementById('priceC').value = isNaN(target.inputs.priceC) ? '' : target.inputs.priceC;
     document.getElementById('weightC').value = isNaN(target.inputs.weightC) ? '' : target.inputs.weightC;
 
+    saveAutoState();
     closeHistoryModal();
     comparePrice();
 }
@@ -166,7 +210,6 @@ function deleteHistoryItem(event, id) {
     openHistoryModal();
 }
 
-// 🔄 กดปุ่มเวอร์ชันแล้วอัปเดตทันทีแบบเงียบๆ ไม่มี Confirm หรือ Alert
 async function forceAppUpdate() {
     if ('caches' in window) {
         const cacheNames = await caches.keys();
