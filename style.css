@@ -27,10 +27,23 @@ body {
 }
 
 h2 {
-    font-size: 18px; /* ย่อลง ~30% */
+    font-size: 18px;
     font-weight: 700;
     color: #1e293b;
     letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* สไตล์สำหรับเวอร์ชันแอป */
+.app-version {
+    font-size: 12px;
+    font-weight: 500;
+    color: #64748b;
+    background: #e2e8f0;
+    padding: 1px 6px;
+    border-radius: 6px;
 }
 
 .btn-history {
@@ -46,7 +59,7 @@ h2 {
 
 .product-card {
     background: #ffffff;
-    padding: 12px; /* ย่อ padding การ์ดลง */
+    padding: 12px;
     border-radius: 12px;
     margin-bottom: 8px;
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
@@ -59,7 +72,7 @@ h2 {
 
 h3 {
     margin-bottom: 6px;
-    font-size: 13px; /* ย่อขนาดหัวข้อสินค้าลง ~30% */
+    font-size: 13px;
     font-weight: 600;
     color: #334155;
     display: flex;
@@ -89,7 +102,6 @@ h3 {
     gap: 8px;
 }
 
-/* ช่องกรอกข้อมูลลดลงแค่ 15% (จาก 18px เหลือ 15px) เพื่อให้ยังกดง่ายด้วยนิ้วโป้ง */
 input {
     width: 50%;
     padding: 10px 8px; 
@@ -159,7 +171,6 @@ button {
 
 .btn-clear:active { background-color: #cbd5e1; }
 
-/* Modal สไตล์ Modern */
 .modal {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
