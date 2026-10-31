@@ -1,7 +1,7 @@
 let currentCalculationResult = null;
 let fieldState = {};
 
-// โหลดข้อมูล Auto-Save เมื่อเปิดแอป
+// โหลดข้อมูล Auto-Save ทันทีที่เปิดแอป
 window.addEventListener('DOMContentLoaded', () => {
     let savedState = localStorage.getItem('price_calc_autofill');
     if (savedState) {
@@ -18,16 +18,35 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-function saveAutoState() {
-    let inputs = {
-        priceA: document.getElementById('priceA').value,
-        weightA: document.getElementById('weightA').value,
-        priceB: document.getElementById('priceB').value,
-        weightB: document.getElementById('weightB').value,
-        priceC: document.getElementById('priceC').value,
-        weightC: document.getElementById('weightC').value
-    };
-    localStorage.setItem('price_calc_autofill', JSON.stringify(inputs));
+// ฟังก์ชัน Auto-Save เบื้องหลัง (เซฟทับบันทึกเดียว ไม่สร้างเพิ่ม)
+function checkAndAutoSaveBackground() {
+    let priceA = parseFloat(document.getElementById('priceA').value);
+    let weightA = parseFloat(document.getElementById('weightA').value);
+    let priceB = parseFloat(document.getElementById('priceB').value);
+    let weightB = parseFloat(document.getElementById('weightB').value);
+    let priceC = parseFloat(document.getElementById('priceC').value);
+    let weightC = parseFloat(document.getElementById('weightC').value);
+
+    let validA = !isNaN(priceA) && !isNaN(weightA) && weightA > 0;
+    let validB = !isNaN(priceB) && !isNaN(weightB) && weightB > 0;
+    let validC = !isNaN(priceC) && !isNaN(weightC) && weightC > 0;
+    let countValid = (validA ? 1 : 0) + (validB ? 1 : 0) + (validC ? 1 : 0);
+
+    // ถ้ายอดกรอกมีอย่างน้อย 1 ชนิดที่สมบูรณ์ ให้ทำการ Auto-Save ทับทันทีในเบื้องหลัง
+    if (countValid >= 1 && currentCalculationResult) {
+        let inputs = {
+            priceA: document.getElementById('priceA').value,
+            weightA: document.getElementById('weightA').value,
+            priceB: document.getElementById('priceB').value,
+            weightB: document.getElementById('weightB').value,
+            priceC: document.getElementById('priceC').value,
+            weightC: document.getElementById('weightC').value
+        };
+        localStorage.setItem('price_calc_autofill', JSON.stringify(inputs));
+    } else {
+        // หากไม่มีข้อมูลสมบูรณ์ ให้เคลียร์ตัว Auto-Save ออก
+        localStorage.removeItem('price_calc_autofill');
+    }
 }
 
 function handleFocus(input) {
@@ -42,24 +61,22 @@ function handleInputChange(input) {
     if (fieldState[input.id]) {
         fieldState[input.id].isTouched = true;
     }
-    saveAutoState();
     comparePrice();
+    checkAndAutoSaveBackground();
 }
 
 function handleBlur(input) {
     let state = fieldState[input.id];
     
-    // ถ้าผู้ใช้ไม่ได้แตะพิมพ์อะไรเลยหลัง focus ให้ดึงค่าเดิมกลับมา
     if (state && !state.isTouched && input.value === "" && state.initialValue !== "") {
         input.value = state.initialValue;
     } else {
-        // หากผู้ใช้พิมพ์ค่าออกมาแล้วมีค่าเท่ากับ 0 (เช่น 0, 00) ให้ทำการล้างค่าเมื่อย้ายโฟกัส
         if (input.value !== "" && parseFloat(input.value) === 0) {
             input.value = "";
         }
-        saveAutoState();
     }
     comparePrice();
+    checkAndAutoSaveBackground();
 }
 
 function comparePrice() {
@@ -210,7 +227,7 @@ function loadHistoryItem(id) {
     document.getElementById('priceC').value = isNaN(target.inputs.priceC) ? '' : target.inputs.priceC;
     document.getElementById('weightC').value = isNaN(target.inputs.weightC) ? '' : target.inputs.weightC;
 
-    saveAutoState();
+    checkAndAutoSaveBackground();
     closeHistoryModal();
     comparePrice();
 }
