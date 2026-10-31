@@ -17,22 +17,21 @@
         <div class="product-card card-a">
             <h3>สินค้า A</h3>
             <div class="input-group">
-                <input type="number" id="priceA" placeholder="ราคา (บาท)" inputmode="decimal">
-                <input type="number" id="weightA" placeholder="ปริมาณ (กรัม/มล.)" inputmode="decimal">
+                <input type="number" id="priceA" placeholder="ราคา (บาท)" inputmode="decimal" oninput="comparePrice()">
+                <input type="number" id="weightA" placeholder="ปริมาณ" inputmode="decimal" oninput="comparePrice()">
             </div>
         </div>
 
         <div class="product-card card-b">
             <h3>สินค้า B</h3>
             <div class="input-group">
-                <input type="number" id="priceB" placeholder="ราคา (บาท)" inputmode="decimal">
-                <input type="number" id="weightB" placeholder="ปริมาณ (กรัม/มล.)" inputmode="decimal">
+                <input type="number" id="priceB" placeholder="ราคา (บาท)" inputmode="decimal" oninput="comparePrice()">
+                <input type="number" id="weightB" placeholder="ปริมาณ" inputmode="decimal" oninput="comparePrice()">
             </div>
         </div>
 
         <div class="button-group">
-            <button onclick="comparePrice()" class="btn-calc">คำนวณเลย</button>
-            <button onclick="clearFields()" class="btn-clear">ล้าง</button>
+            <button onclick="clearFields()" class="btn-clear">ล้างข้อมูลทั้งหมด</button>
         </div>
 
         <div id="resultCard" class="result-card hidden">
