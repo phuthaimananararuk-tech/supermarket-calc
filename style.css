@@ -1,284 +1,241 @@
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    -webkit-tap-highlight-color: transparent;
+let currentCalculationResult = null;
+let activeFieldInitialValue = "";
+let isUserModified = false;
+
+// โหลดข้อมูล Auto-Save เมื่อเปิดแอป
+window.addEventListener('DOMContentLoaded', () => {
+    let savedState = localStorage.getItem('price_calc_autofill');
+    if (savedState) {
+        try {
+            let data = JSON.parse(savedState);
+            document.getElementById('priceA').value = data.priceA || '';
+            document.getElementById('weightA').value = data.weightA || '';
+            document.getElementById('priceB').value = data.priceB || '';
+            document.getElementById('weightB').value = data.weightB || '';
+            document.getElementById('priceC').value = data.priceC || '';
+            document.getElementById('weightC').value = data.weightC || '';
+            comparePrice();
+        } catch (e) {}
+    }
+});
+
+function saveAutoState() {
+    let inputs = {
+        priceA: document.getElementById('priceA').value,
+        weightA: document.getElementById('weightA').value,
+        priceB: document.getElementById('priceB').value,
+        weightB: document.getElementById('weightB').value,
+        priceC: document.getElementById('priceC').value,
+        weightC: document.getElementById('weightC').value
+    };
+    localStorage.setItem('price_calc_autofill', JSON.stringify(inputs));
 }
 
-body {
-    background-color: #cbd5e1; /* สีเทาเข้มขึ้น */
-    color: #1e293b;
-    display: flex;
-    justify-content: center;
-    padding: 16px 12px;
+function handleFocus(input) {
+    activeFieldInitialValue = input.value;
+    isUserModified = false;
+    input.value = "";
 }
 
-.app-container {
-    width: 100%;
-    max-width: 380px;
+function handleKeyDown(input) {
+    // เช็กว่ามีการกดปุ่มพิมพ์หรือปุ่มลบบนคีย์บอร์ดหรือไม่
+    isUserModified = true;
 }
 
-.app-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
+function handleBlur(input) {
+    // ถ้าผู้ใช้ไม่ได้กดลบหรือกดพิมพ์อะไรเลย ให้ดึงค่าเดิมกลับมา
+    if (!isUserModified && input.value === "" && activeFieldInitialValue !== "") {
+        input.value = activeFieldInitialValue;
+        comparePrice();
+    } else {
+        // ถ้าผู้ใช้กดสั่งลบเอง หรือพิมพ์ใหม่ ให้บันทึกสถานะล่าสุด
+        saveAutoState();
+        comparePrice();
+    }
 }
 
-h2 {
-    font-size: 18px;
-    font-weight: 700;
-    color: #0f172a;
-    letter-spacing: -0.02em;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+function handleInputChange() {
+    isUserModified = true;
+    saveAutoState();
+    comparePrice();
 }
 
-/* ปุ่มเวอร์ชัน (เพิ่ม Feedback ชัดเจนบน iPhone ด้วย active state) */
-.app-version {
-    font-size: 11px;
-    font-weight: 600;
-    color: #2563eb;
-    background: #e2e8f0;
-    border: 1px solid #cbd5e1;
-    padding: 3px 8px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: transform 0.1s ease, opacity 0.1s ease;
+function comparePrice() {
+    let priceA = parseFloat(document.getElementById('priceA').value);
+    let weightA = parseFloat(document.getElementById('weightA').value);
+    let priceB = parseFloat(document.getElementById('priceB').value);
+    let weightB = parseFloat(document.getElementById('weightB').value);
+    let priceC = parseFloat(document.getElementById('priceC').value);
+    let weightC = parseFloat(document.getElementById('weightC').value);
+
+    let badgeA = document.getElementById('badgeA');
+    let badgeB = document.getElementById('badgeB');
+    let badgeC = document.getElementById('badgeC');
+    let btnSave = document.getElementById('btnSave');
+
+    badgeA.innerText = ''; badgeA.className = 'badge';
+    badgeB.innerText = ''; badgeB.className = 'badge';
+    badgeC.innerText = ''; badgeC.className = 'badge';
+
+    let validA = !isNaN(priceA) && !isNaN(weightA) && weightA > 0;
+    let validB = !isNaN(priceB) && !isNaN(weightB) && weightB > 0;
+    let validC = !isNaN(priceC) && !isNaN(weightC) && weightC > 0;
+
+    let countValid = (validA ? 1 : 0) + (validB ? 1 : 0) + (validC ? 1 : 0);
+
+    if (countValid < 1) {
+        btnSave.disabled = true;
+        currentCalculationResult = null;
+        return;
+    }
+
+    let items = [];
+    if (validA) items.push({ id: 'A', name: 'สินค้า A', price: priceA, weight: weightA, unit: priceA / weightA, badge: badgeA });
+    if (validB) items.push({ id: 'B', name: 'สินค้า B', price: priceB, weight: weightB, unit: priceB / weightB, badge: badgeB });
+    if (validC) items.push({ id: 'C', name: 'สินค้า C', price: priceC, weight: weightC, unit: priceC / weightC, badge: badgeC });
+
+    items.sort((x, y) => x.unit - y.unit);
+
+    let best = items[0];
+    best.badge.innerText = `คุ้มค่าที่สุด`;
+    best.badge.classList.add('badge-best');
+
+    for (let i = 1; i < items.length; i++) {
+        let item = items[i];
+        let diffPercent = ((best.unit - item.unit) / best.unit) * 100; 
+        item.badge.innerText = `${diffPercent.toFixed(0)}%`;
+        item.badge.classList.add('badge-worse');
+    }
+
+    currentCalculationResult = { 
+        inputs: { priceA, weightA, priceB, weightB, priceC, weightC },
+        items, 
+        best 
+    };
+    btnSave.disabled = false;
 }
 
-.app-version:active {
-    opacity: 0.6;
-    transform: scale(0.90);
-    animation: flashEffect 0.3s ease;
+function clearFields() {
+    document.getElementById('priceA').value = '';
+    document.getElementById('weightA').value = '';
+    document.getElementById('priceB').value = '';
+    document.getElementById('weightB').value = '';
+    document.getElementById('priceC').value = '';
+    document.getElementById('weightC').value = '';
+    
+    document.getElementById('badgeA').innerText = ''; document.getElementById('badgeA').className = 'badge';
+    document.getElementById('badgeB').innerText = ''; document.getElementById('badgeB').className = 'badge';
+    document.getElementById('badgeC').innerText = ''; document.getElementById('badgeC').className = 'badge';
+    
+    document.getElementById('btnSave').disabled = true;
+    currentCalculationResult = null;
+    localStorage.removeItem('price_calc_autofill');
 }
 
-@keyframes flashEffect {
-    0% { background-color: #2563eb; color: #ffffff; }
-    50% { background-color: #93c5fd; color: #1e293b; }
-    100% { background-color: #e2e8f0; color: #2563eb; }
+function promptSaveRecord() {
+    if (!currentCalculationResult) return;
+
+    let productName = prompt("กรอกชื่อสินค้าที่ต้องการบันทึก (เช่น น้ำยาปรับผ้านุ่ม):");
+    if (!productName || productName.trim() === "") return;
+
+    let cleanName = productName.trim();
+    let history = JSON.parse(localStorage.getItem('price_calc_history') || '[]');
+
+    let existingIndex = history.findIndex(item => item.name.toLowerCase() === cleanName.toLowerCase());
+    
+    if (existingIndex !== -1) {
+        let confirmOverwrite = confirm(`❌ มีชื่อ "${cleanName}" ในประวัติอยู่แล้ว!\nต้องการเซฟทับรายการเดิมหรือไม่?`);
+        if (!confirmOverwrite) {
+            setTimeout(() => promptSaveRecord(), 100);
+            return;
+        }
+        history.splice(existingIndex, 1);
+    }
+
+    let record = {
+        id: Date.now(),
+        name: cleanName,
+        date: new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' }),
+        inputs: currentCalculationResult.inputs,
+        bestUnit: currentCalculationResult.best.unit,
+        bestName: currentCalculationResult.best.name
+    };
+
+    history.unshift(record);
+    if (history.length > 20) history.pop();
+
+    localStorage.setItem('price_calc_history', JSON.stringify(history));
+    alert("✅ บันทึกข้อมูลเรียบร้อยแล้ว!");
 }
 
-.btn-history {
-    background: #e2e8f0;
-    border: none;
-    padding: 6px 10px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 600;
-    color: #475569;
-    cursor: pointer;
+function openHistoryModal() {
+    let modal = document.getElementById('historyModal');
+    let listContainer = document.getElementById('historyList');
+    
+    let history = JSON.parse(localStorage.getItem('price_calc_history') || '[]');
+
+    if (history.length === 0) {
+        listContainer.innerHTML = `<p class="empty-history">ยังไม่มีประวัติการบันทึก</p>`;
+    } else {
+        listContainer.innerHTML = history.map(item => `
+            <div class="history-item">
+                <div class="history-info" onclick="loadHistoryItem(${item.id})" style="cursor: pointer; flex-grow: 1;">
+                    <strong>${item.name}</strong>
+                    <small>${item.date} — แนะนำ ${item.bestName} (${item.bestUnit.toFixed(2)} บ./หน่วย)</small>
+                </div>
+                <button onclick="deleteHistoryItem(event, ${item.id})" class="btn-del">ลบ</button>
+            </div>
+        `).join('');
+    }
+
+    modal.classList.remove('hidden');
 }
 
-/* ปรับสีพื้นหลังการ์ดสินค้าให้เป็นสีเทาอ่อนกว่าพื้นหลังหลักเล็กน้อย (#e2e8f0) */
-.product-card {
-    background: #e2e8f0;
-    padding: 12px;
-    border-radius: 12px;
-    margin-bottom: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    border: 1px solid #b8c2cc;
+function closeHistoryModal() {
+    document.getElementById('historyModal').classList.add('hidden');
 }
 
-.card-a { border-left: 4px solid #3b82f6; }
-.card-b { border-left: 4px solid #10b981; }
-.card-c { border-left: 4px solid #f59e0b; }
+function loadHistoryItem(id) {
+    let history = JSON.parse(localStorage.getItem('price_calc_history') || '[]');
+    let target = history.find(item => item.id === id);
+    if (!target) return;
 
-h3 {
-    margin-bottom: 6px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #334155;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    document.getElementById('priceA').value = isNaN(target.inputs.priceA) ? '' : target.inputs.priceA;
+    document.getElementById('weightA').value = isNaN(target.inputs.weightA) ? '' : target.inputs.weightA;
+    document.getElementById('priceB').value = isNaN(target.inputs.priceB) ? '' : target.inputs.priceB;
+    document.getElementById('weightB').value = isNaN(target.inputs.weightB) ? '' : target.inputs.weightB;
+    document.getElementById('priceC').value = isNaN(target.inputs.priceC) ? '' : target.inputs.priceC;
+    document.getElementById('weightC').value = isNaN(target.inputs.weightC) ? '' : target.inputs.weightC;
+
+    saveAutoState();
+    closeHistoryModal();
+    comparePrice();
 }
 
-.badge {
-    font-size: 11px;
-    font-weight: 600;
-    padding: 2px 6px;
-    border-radius: 5px;
+// ยืนยันก่อนลบประวัติ
+function deleteHistoryItem(event, id) {
+    event.stopPropagation();
+    let history = JSON.parse(localStorage.getItem('price_calc_history') || '[]');
+    let target = history.find(item => item.id === id);
+    let nameText = target ? ` "${target.name}"` : '';
+
+    if (confirm(`คุณต้องการลบประวัติรายการ${nameText} ใช่หรือไม่?`)) {
+        history = history.filter(item => item.id !== id);
+        localStorage.setItem('price_calc_history', JSON.stringify(history));
+        openHistoryModal();
+    }
 }
 
-.badge-best {
-    background-color: #dcfce7;
-    color: #166534;
+async function forceAppUpdate() {
+    if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map(name => caches.delete(name)));
+    }
+    if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (let registration of registrations) {
+            await registration.unregister();
+        }
+    }
+    window.location.reload(true);
 }
-
-.badge-worse {
-    background-color: #fee2e2;
-    color: #991b1b;
-}
-
-.input-group {
-    display: flex;
-    gap: 8px;
-}
-
-input {
-    width: 50%;
-    padding: 10px 8px; 
-    border: 1.5px solid #cbd5e1;
-    border-radius: 8px;
-    font-size: 15px; 
-    font-weight: 600;
-    text-align: center;
-    background: #f8fafc;
-    color: #0f172a;
-    transition: all 0.2s ease;
-}
-
-input:focus {
-    border-color: #3b82f6;
-    background: #ffffff;
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-}
-
-input::placeholder {
-    font-size: 13px;
-    font-weight: 400;
-    color: #94a3b8;
-}
-
-.action-buttons {
-    display: flex;
-    gap: 8px;
-    margin-top: 12px;
-}
-
-button {
-    font-family: inherit;
-    cursor: pointer;
-    border: none;
-    border-radius: 10px;
-    font-weight: 600;
-    transition: background 0.15s ease;
-}
-
-.btn-save {
-    flex: 3;
-    padding: 10px;
-    background-color: #2563eb;
-    color: white;
-    font-size: 14px;
-}
-
-.btn-save:disabled {
-    background-color: #cbd5e1;
-    color: #64748b;
-    cursor: not-allowed;
-}
-
-.btn-save:not(:disabled):active {
-    background-color: #1d4ed8;
-}
-
-.btn-clear {
-    flex: 1;
-    padding: 10px;
-    background-color: #e2e8f0;
-    color: #475569;
-    font-size: 14px;
-}
-
-.btn-clear:active { background-color: #cbd5e1; }
-
-.app-footer {
-    text-align: center;
-    margin-top: 16px;
-    color: #475569;
-    font-size: 11px;
-}
-
-.modal {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(15, 23, 42, 0.4);
-    backdrop-filter: blur(4px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 16px;
-    z-index: 100;
-}
-
-.modal-content {
-    background: #ffffff;
-    width: 100%;
-    max-width: 360px;
-    border-radius: 16px;
-    padding: 16px;
-    max-height: 80vh;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-    border-bottom: 1px solid #f1f5f9;
-    padding-bottom: 8px;
-}
-
-.modal-header h3 {
-    font-size: 15px;
-    color: #1e293b;
-}
-
-.btn-close {
-    background: none;
-    font-size: 16px;
-    color: #64748b;
-    padding: 2px 6px;
-}
-
-.history-list {
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.history-item {
-    background: #f8fafc;
-    padding: 10px;
-    border-radius: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border: 1px solid #e2e8f0;
-}
-
-.history-info strong {
-    font-size: 13px;
-    color: #1e293b;
-}
-
-.history-info small {
-    font-size: 11px;
-    color: #64748b;
-}
-
-.btn-del {
-    background: #fee2e2;
-    color: #991b1b;
-    padding: 6px 10px;
-    font-size: 11px;
-    border-radius: 6px;
-}
-
-.empty-history {
-    text-align: center;
-    color: #94a3b8;
-    padding: 20px 0;
-    font-size: 13px;
-}
-
-.hidden { display: none; }
