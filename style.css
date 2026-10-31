@@ -47,13 +47,12 @@ h3 {
     gap: 12px;
 }
 
-/* 🎯 จุดที่ปรับเพิ่มขนาดช่องกรอกให้ใหญ่สะใจ กดง่ายด้วยนิ้วโป้ง */
 input {
     width: 50%;
-    padding: 20px 10px; /* เพิ่มความสูงด้านบน-ล่างเป็น 20px ขยายพื้นที่กด */
-    border: 2px solid #d1d5db; /* เพิ่มความหนาของเส้นขอบให้ชัดขึ้น */
+    padding: 16px 10px;
+    border: 2px solid #d1d5db;
     border-radius: 12px;
-    font-size: 24px; /* ขยายขนาดตัวเลขให้ใหญ่เต็มตาเป็น 24px */
+    font-size: 22px;
     font-weight: bold;
     text-align: center;
     background: #fafafa;
@@ -67,41 +66,27 @@ input:focus {
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
-/* ปรับสีของข้อความคำแนะนำ (Placeholder) ให้จางลงเล็กน้อยแต่เห็นชัด */
 input::placeholder {
-    font-size: 16px; /* ปรับขนาดข้อความคำแนะนำให้พอดีกับช่อง */
+    font-size: 15px;
     font-weight: normal;
     color: #9ca3af;
 }
 
 .button-group {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
+    margin-top: 10px;
 }
-
-button {
-    padding: 18px;
-    border: none;
-    border-radius: 14px;
-    font-size: 20px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background 0.1s;
-}
-
-.btn-calc {
-    width: 75%;
-    background-color: #3b82f6;
-    color: white;
-}
-
-.btn-calc:active { background-color: #1d4ed8; }
 
 .btn-clear {
-    width: 25%;
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 14px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
     background-color: #e5e7eb;
     color: #4b5563;
+    transition: background 0.1s;
 }
 
 .btn-clear:active { background-color: #d1d5db; }
@@ -110,7 +95,7 @@ button {
     margin-top: 20px;
     background: #eff6ff;
     border: 2px dashed #bfdbfe;
-    padding: 22px;
+    padding: 20px;
     border-radius: 18px;
     text-align: center;
 }
@@ -122,14 +107,15 @@ button {
 }
 
 #resultText {
-    font-size: 24px;
+    font-size: 22px;
     font-weight: bold;
     margin-bottom: 6px;
 }
 
 #resultDetail {
-    font-size: 16px;
+    font-size: 14px;
     color: #4b5563;
+    line-height: 1.4;
 }
 
 .hidden { display: none; }
