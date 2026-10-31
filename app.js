@@ -39,11 +39,6 @@ function handleFocus(input) {
 }
 
 function handleInputChange(input) {
-    // ถ้าผู้ใช้พิมพ์เลข 0 ให้ล้างข้อมูลในช่องนั้นทันที
-    if (input.value === "0") {
-        input.value = "";
-    }
-
     if (fieldState[input.id]) {
         fieldState[input.id].isTouched = true;
     }
@@ -53,13 +48,18 @@ function handleInputChange(input) {
 
 function handleBlur(input) {
     let state = fieldState[input.id];
+    
+    // ถ้าผู้ใช้ไม่ได้แตะพิมพ์อะไรเลยหลัง focus ให้ดึงค่าเดิมกลับมา
     if (state && !state.isTouched && input.value === "" && state.initialValue !== "") {
         input.value = state.initialValue;
-        comparePrice();
     } else {
+        // หากผู้ใช้พิมพ์ค่าออกมาแล้วมีค่าเท่ากับ 0 (เช่น 0, 00) ให้ทำการล้างค่าเมื่อย้ายโฟกัส
+        if (input.value !== "" && parseFloat(input.value) === 0) {
+            input.value = "";
+        }
         saveAutoState();
-        comparePrice();
     }
+    comparePrice();
 }
 
 function comparePrice() {
