@@ -1,5 +1,5 @@
 let currentCalculationResult = null;
-let activeFieldInitialValue = "";
+let fieldState = {};
 
 // โหลดข้อมูล Auto-Save เมื่อเปิดแอป
 window.addEventListener('DOMContentLoaded', () => {
@@ -31,20 +31,31 @@ function saveAutoState() {
 }
 
 function handleFocus(input) {
-    activeFieldInitialValue = input.value;
+    fieldState[input.id] = {
+        initialValue: input.value,
+        isTouched: false
+    };
     input.value = "";
 }
 
-function handleBlur(input) {
-    if (input.value === "" && activeFieldInitialValue !== "") {
-        input.value = activeFieldInitialValue;
-        comparePrice();
+function handleInputChange(input) {
+    if (fieldState[input.id]) {
+        fieldState[input.id].isTouched = true;
     }
-}
-
-function handleInputChange() {
     saveAutoState();
     comparePrice();
+}
+
+function handleBlur(input) {
+    let state = fieldState[input.id];
+    // ถ้าผู้ใช้ไม่ได้แตะพิมพ์อะไรเลยหลัง focus ให้ดึงค่าเดิมกลับมา
+    if (state && !state.isTouched && input.value === "" && state.initialValue !== "") {
+        input.value = state.initialValue;
+        comparePrice();
+    } else {
+        saveAutoState();
+        comparePrice();
+    }
 }
 
 function comparePrice() {
@@ -70,7 +81,6 @@ function comparePrice() {
 
     let countValid = (validA ? 1 : 0) + (validB ? 1 : 0) + (validC ? 1 : 0);
 
-    // เงื่อนไข: ต้องมีอย่างน้อย 1 ชนิดที่ใส่ครบทั้งราคาและจำนวน
     if (countValid < 1) {
         btnSave.disabled = true;
         currentCalculationResult = null;
@@ -117,6 +127,7 @@ function clearFields() {
     
     document.getElementById('btnSave').disabled = true;
     currentCalculationResult = null;
+    fieldState = {};
     localStorage.removeItem('price_calc_autofill');
 }
 
@@ -134,11 +145,9 @@ function promptSaveRecord() {
     if (existingIndex !== -1) {
         let confirmOverwrite = confirm(`❌ มีชื่อ "${cleanName}" ในประวัติอยู่แล้ว!\nต้องการเซฟทับรายการเดิมหรือไม่?`);
         if (!confirmOverwrite) {
-            // ถ้ายกเลิก ให้เรียก prompt ซ้ำโดยไม่ล้างค่าข้อมูลที่ผู้ใช้กรอกค้างไว้
             setTimeout(() => promptSaveRecord(), 100);
             return;
         }
-        // ถ้าตอบตกลง ให้ลบรายการเก่าออกเพื่อเตรียมเซฟทับ
         history.splice(existingIndex, 1);
     }
 
@@ -205,9 +214,14 @@ function loadHistoryItem(id) {
 function deleteHistoryItem(event, id) {
     event.stopPropagation();
     let history = JSON.parse(localStorage.getItem('price_calc_history') || '[]');
-    history = history.filter(item => item.id !== id);
-    localStorage.setItem('price_calc_history', JSON.stringify(history));
-    openHistoryModal();
+    let target = history.find(item => item.id === id);
+    let nameText = target ? ` "${target.name}"` : '';
+
+    if (confirm(`คุณต้องการลบประวัติรายการ${nameText} ใช่หรือไม่?`)) {
+        history = history.filter(item => item.id !== id);
+        localStorage.setItem('price_calc_history', JSON.stringify(history));
+        openHistoryModal();
+    }
 }
 
 async function forceAppUpdate() {
