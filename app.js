@@ -1,6 +1,6 @@
 let currentCalculationResult = null;
 let fieldState = {};
-let lastLoadedHistoryName = null; // ตัวแปรจำชื่อประวัติที่เพิ่งโหลดล่าสุด
+let lastLoadedHistoryName = null;
 
 // โหลดข้อมูล Auto-Save ทันทีที่เปิดแอป
 window.addEventListener('DOMContentLoaded', () => {
@@ -147,14 +147,13 @@ function clearFields() {
     document.getElementById('btnSave').disabled = true;
     currentCalculationResult = null;
     fieldState = {};
-    lastLoadedHistoryName = null; // รีเซ็ตชื่อประวัติล่าสุดเมื่อกดปุ่มล้างข้อมูล ให้เป็น empty field
+    lastLoadedHistoryName = null;
     localStorage.removeItem('price_calc_autofill');
 }
 
 function promptSaveRecord() {
     if (!currentCalculationResult) return;
 
-    // ถ้ามีการโหลดประวัติมาล่าสุด ให้ pre-filled ชื่อเดิมไว้ใน field ของ prompt
     let defaultName = lastLoadedHistoryName || "";
     let productName = prompt("กรอกชื่อสินค้าที่ต้องการบันทึก (เช่น น้ำยาปรับผ้านุ่ม):", defaultName);
     if (!productName || productName.trim() === "") return;
@@ -165,7 +164,8 @@ function promptSaveRecord() {
     let existingIndex = history.findIndex(item => item.name.toLowerCase() === cleanName.toLowerCase());
     
     if (existingIndex !== -1) {
-        let confirmOverwrite = confirm(`❌ มีชื่อ "${cleanName}" ในประวัติอยู่แล้ว!\nต้องการเซฟทับรายการเดิมหรือไม่?`);
+        // อัปเดตข้อความแจ้งเตือนตามที่คุณต้องการ
+        let confirmOverwrite = confirm(`⚠️ มีชื่อ "${cleanName}" ในประวัติอยู่แล้ว! ต้องการเซฟทับรายการเดิมหรือไม่?`);
         if (!confirmOverwrite) {
             setTimeout(() => promptSaveRecord(), 100);
             return;
@@ -254,7 +254,6 @@ function loadHistoryItem(id) {
     document.getElementById('priceC').value = isNaN(target.inputs.priceC) ? '' : target.inputs.priceC;
     document.getElementById('weightC').value = isNaN(target.inputs.weightC) ? '' : target.inputs.weightC;
 
-    // บันทึกชื่อประวัติที่เพิ่งโหลดล่าสุดไว้ เพื่อเอาไป pre-filled ตอนกดบันทึก
     lastLoadedHistoryName = target.name;
 
     checkAndAutoSaveBackground();
