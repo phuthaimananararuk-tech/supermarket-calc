@@ -18,7 +18,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// ฟังก์ชัน Auto-Save เบื้องหลัง (เซฟทับบันทึกเดียว ไม่สร้างเพิ่ม)
 function checkAndAutoSaveBackground() {
     let priceA = parseFloat(document.getElementById('priceA').value);
     let weightA = parseFloat(document.getElementById('weightA').value);
@@ -32,7 +31,6 @@ function checkAndAutoSaveBackground() {
     let validC = !isNaN(priceC) && !isNaN(weightC) && weightC > 0;
     let countValid = (validA ? 1 : 0) + (validB ? 1 : 0) + (validC ? 1 : 0);
 
-    // ถ้ายอดกรอกมีอย่างน้อย 1 ชนิดที่สมบูรณ์ ให้ทำการ Auto-Save ทับทันทีในเบื้องหลัง
     if (countValid >= 1 && currentCalculationResult) {
         let inputs = {
             priceA: document.getElementById('priceA').value,
@@ -44,7 +42,6 @@ function checkAndAutoSaveBackground() {
         };
         localStorage.setItem('price_calc_autofill', JSON.stringify(inputs));
     } else {
-        // หากไม่มีข้อมูลสมบูรณ์ ให้เคลียร์ตัว Auto-Save ออก
         localStorage.removeItem('price_calc_autofill');
     }
 }
@@ -203,7 +200,10 @@ function openHistoryModal() {
                     <strong>${item.name}</strong>
                     <small>${item.date} — แนะนำ ${item.bestName} (${item.bestUnit.toFixed(2)} บ./หน่วย)</small>
                 </div>
-                <button onclick="deleteHistoryItem(event, ${item.id})" class="btn-del">ลบ</button>
+                <div class="history-actions" style="display: flex; gap: 4px;">
+                    <button onclick="editHistoryItem(event, ${item.id})" class="btn-edit">แก้ไข</button>
+                    <button onclick="deleteHistoryItem(event, ${item.id})" class="btn-del">ลบ</button>
+                </div>
             </div>
         `).join('');
     }
@@ -213,6 +213,31 @@ function openHistoryModal() {
 
 function closeHistoryModal() {
     document.getElementById('historyModal').classList.add('hidden');
+}
+
+// ฟังก์ชันแก้ไขชื่อบันทึก
+function editHistoryItem(event, id) {
+    event.stopPropagation();
+    let history = JSON.parse(localStorage.getItem('price_calc_history') || '[]');
+    let target = history.find(item => item.id === id);
+    if (!target) return;
+
+    let newName = prompt("กรอกชื่อใหม่สำหรับบันทึกนี้:", target.name);
+    if (newName === null) return; // กดยกเลิก
+    
+    let cleanNewName = newName.trim();
+    if (cleanNewName === "") return;
+
+    // เช็กว่าชื่อซ้ำกับรายการอื่นหรือไม่ (ยกเว้นตัวเอง)
+    let existingIndex = history.findIndex(item => item.name.toLowerCase() === cleanNewName.toLowerCase() && item.id !== id);
+    if (existingIndex !== -1) {
+        alert(`❌ มีชื่อ "${cleanNewName}" ในประวัติอยู่แล้ว!`);
+        return;
+    }
+
+    target.name = cleanNewName;
+    localStorage.setItem('price_calc_history', JSON.stringify(history));
+    openHistoryModal(); // Refresh หน้าประวัติทันที
 }
 
 function loadHistoryItem(id) {
