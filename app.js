@@ -1,5 +1,6 @@
 let currentCalculationResult = null;
 let fieldState = {};
+let lastLoadedHistoryName = null; // ตัวแปรจำชื่อประวัติที่เพิ่งโหลดล่าสุด
 
 // โหลดข้อมูล Auto-Save ทันทีที่เปิดแอป
 window.addEventListener('DOMContentLoaded', () => {
@@ -146,13 +147,16 @@ function clearFields() {
     document.getElementById('btnSave').disabled = true;
     currentCalculationResult = null;
     fieldState = {};
+    lastLoadedHistoryName = null; // รีเซ็ตชื่อประวัติล่าสุดเมื่อกดปุ่มล้างข้อมูล ให้เป็น empty field
     localStorage.removeItem('price_calc_autofill');
 }
 
 function promptSaveRecord() {
     if (!currentCalculationResult) return;
 
-    let productName = prompt("กรอกชื่อสินค้าที่ต้องการบันทึก (เช่น น้ำยาปรับผ้านุ่ม):");
+    // ถ้ามีการโหลดประวัติมาล่าสุด ให้ pre-filled ชื่อเดิมไว้ใน field ของ prompt
+    let defaultName = lastLoadedHistoryName || "";
+    let productName = prompt("กรอกชื่อสินค้าที่ต้องการบันทึก (เช่น น้ำยาปรับผ้านุ่ม):", defaultName);
     if (!productName || productName.trim() === "") return;
 
     let cleanName = productName.trim();
@@ -215,7 +219,6 @@ function closeHistoryModal() {
     document.getElementById('historyModal').classList.add('hidden');
 }
 
-// ฟังก์ชันแก้ไขชื่อบันทึก
 function editHistoryItem(event, id) {
     event.stopPropagation();
     let history = JSON.parse(localStorage.getItem('price_calc_history') || '[]');
@@ -223,12 +226,11 @@ function editHistoryItem(event, id) {
     if (!target) return;
 
     let newName = prompt("กรอกชื่อใหม่สำหรับบันทึกนี้:", target.name);
-    if (newName === null) return; // กดยกเลิก
+    if (newName === null) return;
     
     let cleanNewName = newName.trim();
     if (cleanNewName === "") return;
 
-    // เช็กว่าชื่อซ้ำกับรายการอื่นหรือไม่ (ยกเว้นตัวเอง)
     let existingIndex = history.findIndex(item => item.name.toLowerCase() === cleanNewName.toLowerCase() && item.id !== id);
     if (existingIndex !== -1) {
         alert(`❌ มีชื่อ "${cleanNewName}" ในประวัติอยู่แล้ว!`);
@@ -237,7 +239,7 @@ function editHistoryItem(event, id) {
 
     target.name = cleanNewName;
     localStorage.setItem('price_calc_history', JSON.stringify(history));
-    openHistoryModal(); // Refresh หน้าประวัติทันที
+    openHistoryModal();
 }
 
 function loadHistoryItem(id) {
@@ -251,6 +253,9 @@ function loadHistoryItem(id) {
     document.getElementById('weightB').value = isNaN(target.inputs.weightB) ? '' : target.inputs.weightB;
     document.getElementById('priceC').value = isNaN(target.inputs.priceC) ? '' : target.inputs.priceC;
     document.getElementById('weightC').value = isNaN(target.inputs.weightC) ? '' : target.inputs.weightC;
+
+    // บันทึกชื่อประวัติที่เพิ่งโหลดล่าสุดไว้ เพื่อเอาไป pre-filled ตอนกดบันทึก
+    lastLoadedHistoryName = target.name;
 
     checkAndAutoSaveBackground();
     closeHistoryModal();
