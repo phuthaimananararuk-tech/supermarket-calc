@@ -266,6 +266,15 @@ button {
     color: #64748b;
 }
 
+/* สไตล์ปุ่มแก้ไขในหน้าประวัติ */
+.btn-edit {
+    background: #e0f2fe;
+    color: #0369a1;
+    padding: 6px 10px;
+    font-size: 11px;
+    border-radius: 6px;
+}
+
 .btn-del {
     background: #fee2e2;
     color: #991b1b;
