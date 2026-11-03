@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>เทียบคุ้ม (v2.3)</title>
+    <title>เทียบคุ้ม (v3.0)</title>
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="เทียบคุ้ม (v2.3)">
+    <meta name="apple-mobile-web-app-title" content="เทียบคุ้ม (v3.0)">
     <style>
         body { background-color: #94a3b8; color: #1e293b; margin: 0; }
     </style>
@@ -16,38 +16,37 @@
 <body ontouchstart="">
     <div class="app-container">
         <header class="app-header">
-            <!-- เอาไอคอนรูปภาพออกแล้ว เหลือเพียงชื่อแอปและปุ่มเวอร์ชัน v2.3 -->
             <div class="brand-title">
                 <span>เทียบคุ้ม</span>
-                <button onclick="forceAppUpdate()" class="app-version" title="แตะเพื่ออัปเดตทันที">v2.3</button>
+                <button onclick="forceAppUpdate()" class="app-version" title="แตะเพื่ออัปเดตทันที">v3.0</button>
             </div>
             <button onclick="openHistoryModal()" class="btn-history" title="ประวัติการบันทึก">📜 ประวัติ</button>
         </header>
         
         <!-- สินค้า A -->
-        <div class="product-card card-a">
+        <div class="product-card card-a" id="card_A">
             <h3>สินค้า A <span id="badgeA" class="badge"></span></h3>
             <div class="input-group">
-                <input type="number" id="priceA" placeholder="ราคา" inputmode="decimal" onfocus="handleFocus(this)" onblur="handleBlur(this)" oninput="handleInputChange(this)">
-                <input type="number" id="weightA" placeholder="จำนวน" inputmode="decimal" onfocus="handleFocus(this)" onblur="handleBlur(this)" oninput="handleInputChange(this)">
+                <input type="text" id="priceA" placeholder="ราคา" readonly onclick="openCalcKeyboard(this, 'A', 'price', 'สินค้า A • ราคา')">
+                <input type="text" id="weightA" placeholder="จำนวน" readonly onclick="openCalcKeyboard(this, 'A', 'weight', 'สินค้า A • จำนวน')">
             </div>
         </div>
 
         <!-- สินค้า B -->
-        <div class="product-card card-b">
+        <div class="product-card card-b" id="card_B">
             <h3>สินค้า B <span id="badgeB" class="badge"></span></h3>
             <div class="input-group">
-                <input type="number" id="priceB" placeholder="ราคา" inputmode="decimal" onfocus="handleFocus(this)" onblur="handleBlur(this)" oninput="handleInputChange(this)">
-                <input type="number" id="weightB" placeholder="จำนวน" inputmode="decimal" onfocus="handleFocus(this)" onblur="handleBlur(this)" oninput="handleInputChange(this)">
+                <input type="text" id="priceB" placeholder="ราคา" readonly onclick="openCalcKeyboard(this, 'B', 'price', 'สินค้า B • ราคา')">
+                <input type="text" id="weightB" placeholder="จำนวน" readonly onclick="openCalcKeyboard(this, 'B', 'weight', 'สินค้า B • จำนวน')">
             </div>
         </div>
 
         <!-- สินค้า C -->
-        <div class="product-card card-c">
+        <div class="product-card card-c" id="card_C">
             <h3>สินค้า C <span id="badgeC" class="badge"></span></h3>
             <div class="input-group">
-                <input type="number" id="priceC" placeholder="ราคา" inputmode="decimal" onfocus="handleFocus(this)" onblur="handleBlur(this)" oninput="handleInputChange(this)">
-                <input type="number" id="weightC" placeholder="จำนวน" inputmode="decimal" onfocus="handleFocus(this)" onblur="handleBlur(this)" oninput="handleInputChange(this)">
+                <input type="text" id="priceC" placeholder="ราคา" readonly onclick="openCalcKeyboard(this, 'C', 'price', 'สินค้า C • ราคา')">
+                <input type="text" id="weightC" placeholder="จำนวน" readonly onclick="openCalcKeyboard(this, 'C', 'weight', 'สินค้า C • จำนวน')">
             </div>
         </div>
 
@@ -60,6 +59,43 @@
         <footer class="app-footer">
             <small>by Phuthai Mananararuk & Gemini</small>
         </footer>
+    </div>
+
+    <!-- Custom In-App Calculator Keyboard -->
+    <div id="calcKeyboard" class="calc-keyboard hidden">
+        <!-- Live Preview Header Bar -->
+        <div class="calc-preview-bar">
+            <div id="calcFieldTag" class="calc-field-tag badge-card-a">🏷️ สินค้า A • ราคา</div>
+            <div id="calcFormulaDisplay" class="calc-formula-display">0</div>
+            <button onclick="closeCalcKeyboard()" class="btn-close-kb">✕</button>
+        </div>
+        <!-- Keypad Grid -->
+        <div class="calc-keypad">
+            <button class="key key-op" onclick="pressKey('(')">(</button>
+            <button class="key key-op" onclick="pressKey(')')">)</button>
+            <button class="key key-clear" onclick="pressKey('C')">C</button>
+            <button class="key key-del" onclick="pressKey('DEL')">⌫</button>
+
+            <button class="key key-num" onclick="pressKey('7')">7</button>
+            <button class="key key-num" onclick="pressKey('8')">8</button>
+            <button class="key key-num" onclick="pressKey('9')">9</button>
+            <button class="key key-op" onclick="pressKey('/')">÷</button>
+
+            <button class="key key-num" onclick="pressKey('4')">4</button>
+            <button class="key key-num" onclick="pressKey('5')">5</button>
+            <button class="key key-num" onclick="pressKey('6')">6</button>
+            <button class="key key-op" onclick="pressKey('*')">×</button>
+
+            <button class="key key-num" onclick="pressKey('1')">1</button>
+            <button class="key key-num" onclick="pressKey('2')">2</button>
+            <button class="key key-num" onclick="pressKey('3')">3</button>
+            <button class="key key-op" onclick="pressKey('-')">-</button>
+
+            <button class="key key-num" onclick="pressKey('0')">0</button>
+            <button class="key key-num" onclick="pressKey('.')">.</button>
+            <button class="key key-next" onclick="pressKey('NEXT')">Next ➔</button>
+            <button class="key key-op" onclick="pressKey('+')">+</button>
+        </div>
     </div>
 
     <!-- Modal แสดงประวัติสินค้า -->
