@@ -79,7 +79,6 @@ function handleBlurValidation(input) {
     if (!isNaN(evalVal) && evalVal === 0) {
         input.value = "";
     } else if (!isNaN(evalVal) && input.value.trim() !== "") {
-        // หากสูตรสมบูรณ์แล้ว ให้แปลงเป็นผลลัพธ์ตัวเลขกลมๆ
         input.value = evalVal.toString();
     }
     evaluateAllFieldsAndCompare();
@@ -143,7 +142,6 @@ function updatePreviewDisplay() {
 function evaluateExpression(expr) {
     if (!expr || expr.trim() === "") return NaN;
     try {
-        // อนุญาตเฉพาะตัวเลข เครื่องหมายทางคณิตศาสตร์ วงเล็บ และจุดทศนิยม
         let sanitized = expr.replace(/[^0-9+\-*/().]/g, '');
         if (!sanitized) return NaN;
         let res = Function(`"use strict"; return (${sanitized})`)();
@@ -389,6 +387,7 @@ function deleteHistoryItem(event, id) {
     }
 }
 
+// ฟังก์ชันอัปเดตระบบ: ล้างเฉพาะ Cache และ Service Worker โดยไม่ยุ่งกับ localStorage ของผู้ใช้
 async function forceAppUpdate() {
     if ('caches' in window) {
         const cacheNames = await caches.keys();
@@ -400,5 +399,5 @@ async function forceAppUpdate() {
             await registration.unregister();
         }
     }
-    window.location.reload(true);
+    window.location.reload();
 }
