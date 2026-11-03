@@ -1,13 +1,11 @@
 let currentCalculationResult = null;
 let lastLoadedHistoryName = null;
 
-// ข้อมูลสถานะคีย์บอร์ดที่กำลังเปิดอยู่
+// ข้อมูลสถานะคีย์บอร์ดและโฟกัสปัจจุบัน
 let activeInput = null;
-let activeFieldTagText = "";
-let currentProductGroup = "A";
 let inputSequence = ['priceA', 'weightA', 'priceB', 'weightB', 'priceC', 'weightC'];
 
-// โหลดข้อมูล Auto-Save ทันทีที่เปิดแอป
+// โหลดข้อมูล Auto-Save ทันทีที่เปิดแอป และตั้งค่า Default Focus
 window.addEventListener('DOMContentLoaded', () => {
     let savedState = localStorage.getItem('price_calc_autofill');
     if (savedState) {
@@ -23,58 +21,35 @@ window.addEventListener('DOMContentLoaded', () => {
         } catch (e) {}
     }
 
-    // ปิดคีย์บอร์ดเมื่อแตะพื้นที่ว่างภายนอก
-    document.addEventListener('click', (e) => {
-        let kb = document.getElementById('calcKeyboard');
-        if (!kb.classList.contains('hidden') && 
-            !kb.contains(e.target) && 
-            activeInput && !activeInput.contains(e.target)) {
-            closeCalcKeyboard();
-        }
-    });
+    // กำหนดโฟกัสเริ่มต้นที่ PriceA
+    let defaultInput = document.getElementById('priceA');
+    setActiveInput(defaultInput);
 });
 
-// ฟังก์ชันเปิด คีย์บอร์ดย่อย
-function openCalcKeyboard(inputEl, productGroup, fieldType, tagText) {
+// ฟังก์ชันเลือกช่องกรอกปัจจุบัน
+function setActiveInput(inputEl) {
+    if (!inputEl) return;
+
     if (activeInput && activeInput !== inputEl) {
         handleBlurValidation(activeInput);
     }
 
     activeInput = inputEl;
-    currentProductGroup = productGroup;
-    activeFieldTagText = tagText;
 
-    // ทำไฮไลต์ช่องที่กำลังเลือก
+    // ทำไฮไลต์ขอบช่องที่กำลังเลือก
     document.querySelectorAll('input').forEach(i => i.classList.remove('active-focus'));
     inputEl.classList.add('active-focus');
 
-    // อัปเดตป้ายบอกช่องและสีประจำสินค้า
-    let tagEl = document.getElementById('calcFieldTag');
-    tagEl.innerText = `🏷️ ${tagText}`;
-    tagEl.className = `calc-field-tag badge-card-${productGroup.toLowerCase()}`;
-
-    // แสดงคีย์บอร์ด
-    document.getElementById('calcKeyboard').classList.remove('hidden');
-    updatePreviewDisplay();
-
-    // เลื่อนการ์ดสินค้าขึ้นมาให้อยู่ในระยะมองเห็น
-    let cardEl = document.getElementById(`card_${productGroup}`);
-    if (cardEl) {
-        cardEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // ตรวจสอบหากค่านั้นเท่ากับ 0 หรือสอดคล้องเงื่อนไข
+    let evalVal = evaluateExpression(inputEl.value);
+    if (!isNaN(evalVal) && evalVal === 0) {
+        inputEl.value = "";
     }
 }
 
-function closeCalcKeyboard() {
-    if (activeInput) {
-        handleBlurValidation(activeInput);
-        activeInput.classList.remove('active-focus');
-        activeInput = null;
-    }
-    document.getElementById('calcKeyboard').classList.add('hidden');
-}
-
-// ตรวจสอบเมื่อย้ายโฟกัส หากเป็น 0 ให้ล้างค่า
+// ตรวจสอบเมื่อย้ายโฟกัสออกจากช่อง
 function handleBlurValidation(input) {
+    if (!input) return;
     let evalVal = evaluateExpression(input.value);
     if (!isNaN(evalVal) && evalVal === 0) {
         input.value = "";
@@ -85,60 +60,55 @@ function handleBlurValidation(input) {
     checkAndAutoSaveBackground();
 }
 
-// ระบบกดปุ่มบน Custom Keyboard
+// ระบบกดปุ่มบน Permanent Sticky In-App Keyboard
 function pressKey(key) {
-    if (!activeInput) return;
+    if (!activeInput) {
+        setActiveInput(document.getElementById('priceA'));
+    }
 
     let val = activeInput.value;
 
-    if (key === 'C') {
-        val = '';
-    } else if (key === 'DEL') {
+    if (key === 'DEL') {
         val = val.slice(0, -1);
+    } else if (key === 'TOGGLE_BRACKET') {
+        // วงเล็บสมองกล: นับจำนวน ( และ ) เพื่อตัดสินใจเติมวงเล็บที่ถูกต้อง
+        let openCount = (val.match(/\(/g) || []).length;
+        let closeCount = (val.match(/\)/g) || []).length;
+        
+        let lastChar = val.slice(-1);
+        if (openCount > closeCount && lastChar !== '(' && !['+', '-', '*', '/'].includes(lastChar)) {
+            val += ')';
+        } else {
+            val += '(';
+        }
     } else if (key === 'NEXT') {
         handleBlurValidation(activeInput);
         let currentIndex = inputSequence.indexOf(activeInput.id);
         let nextIndex = (currentIndex + 1) % inputSequence.length;
-        let nextId = inputSequence[nextIndex];
-        let nextEl = document.getElementById(nextId);
-        
-        let productGroup = nextId.includes('A') ? 'A' : (nextId.includes('B') ? 'B' : 'C');
-        let fieldType = nextId.includes('price') ? 'price' : 'weight';
-        let fieldName = fieldType === 'price' ? 'ราคา' : 'จำนวน';
-        let tagText = `สินค้า ${productGroup} • ${fieldName}`;
-        
-        openCalcKeyboard(nextEl, productGroup, fieldType, tagText);
+        let nextEl = document.getElementById(nextSequenceId(nextIndex));
+        setActiveInput(nextEl);
+
+        // เลื่อนการ์ดสินค้าเป้าหมายขึ้นมาให้อยู่ในสายตา
+        let cardId = nextEl.id.includes('A') ? 'card_A' : (nextEl.id.includes('B') ? 'card_B' : 'card_C');
+        let cardEl = document.getElementById(cardId);
+        if (cardEl) {
+            cardEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
         return;
     } else {
         val += key;
     }
 
     activeInput.value = val;
-    updatePreviewDisplay();
     evaluateAllFieldsAndCompare();
     checkAndAutoSaveBackground();
 }
 
-// อัปเดตแถบ Live Preview
-function updatePreviewDisplay() {
-    if (!activeInput) return;
-    let rawVal = activeInput.value;
-    let displayEl = document.getElementById('calcFormulaDisplay');
-
-    if (!rawVal || rawVal.trim() === "") {
-        displayEl.innerText = "0";
-        return;
-    }
-
-    let evalVal = evaluateExpression(rawVal);
-    if (!isNaN(evalVal) && rawVal !== evalVal.toString()) {
-        displayEl.innerHTML = `${rawVal} <span class="calc-eval-result">(= ${evalVal})</span>`;
-    } else {
-        displayEl.innerText = rawVal;
-    }
+function nextSequenceId(index) {
+    return inputSequence[index];
 }
 
-// คำนวณนิพจน์ทางคณิตศาสตร์อย่างปลอดภัย (รองรับ +, -, *, /, วงเล็บ)
+// คำนวณนิพจน์ทางคณิตศาสตร์อย่างปลอดภัย
 function evaluateExpression(expr) {
     if (!expr || expr.trim() === "") return NaN;
     try {
@@ -260,8 +230,8 @@ function clearFields() {
     document.getElementById('btnSave').disabled = true;
     currentCalculationResult = null;
     lastLoadedHistoryName = null;
-    closeCalcKeyboard();
     localStorage.removeItem('price_calc_autofill');
+    setActiveInput(document.getElementById('priceA'));
 }
 
 function promptSaveRecord() {
@@ -324,7 +294,6 @@ function openHistoryModal() {
         `).join('');
     }
 
-    closeCalcKeyboard();
     modal.classList.remove('hidden');
 }
 
@@ -387,7 +356,7 @@ function deleteHistoryItem(event, id) {
     }
 }
 
-// ฟังก์ชันอัปเดตระบบ: ล้างเฉพาะ Cache และ Service Worker โดยไม่ยุ่งกับ localStorage ของผู้ใช้
+// ฟังก์ชันอัปเดตระบบ: ล้างเฉพาะ Cache Storage เพื่ออัปเดต โดยไม่ยุ่งกับ localStorage
 async function forceAppUpdate() {
     if ('caches' in window) {
         const cacheNames = await caches.keys();
