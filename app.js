@@ -1,10 +1,13 @@
+let currentCalculationResult = null;
+let lastLoadedHistoryName = null;
+
+// ข้อมูลสถานะคีย์บอร์ดที่กำลังเปิดอยู่
 let activeInput = null;
+let activeFieldTagText = "";
+let currentProductGroup = "A";
 let inputSequence = ['priceA', 'weightA', 'priceB', 'weightB', 'priceC', 'weightC'];
 
-let originalValueBeforeFocus = "";
-let userTypedInCurrentFocus = false;
-
-// โหลดข้อมูล Auto-Save ทันทีเมื่อเปิดแอป
+// โหลดข้อมูล Auto-Save ทันทีที่เปิดแอป
 window.addEventListener('DOMContentLoaded', () => {
     let savedState = localStorage.getItem('price_calc_autofill');
     if (savedState) {
@@ -20,205 +23,381 @@ window.addEventListener('DOMContentLoaded', () => {
         } catch (e) {}
     }
 
-    let defaultInput = document.getElementById('priceA');
-    activeInput = defaultInput;
-    defaultInput.classList.add('active-focus');
-    originalValueBeforeFocus = defaultInput.value;
-    defaultInput.value = "";
-
-    // ผูก Event ปุ่มควบคุมด้านบน
-    document.getElementById('clearBtn').addEventListener('click', clearAllFields);
-    document.getElementById('versionBtn').addEventListener('click', forceAppUpdate);
-    document.getElementById('historyBtn').addEventListener('click', openHistoryModal);
-    document.getElementById('closeModalBtn').addEventListener('click', closeHistoryModal);
+    // ปิดคีย์บอร์ดเมื่อแตะพื้นที่ว่างภายนอก
+    document.addEventListener('click', (e) => {
+        let kb = document.getElementById('calcKeyboard');
+        if (!kb.classList.contains('hidden') && 
+            !kb.contains(e.target) && 
+            activeInput && !activeInput.contains(e.target)) {
+            closeCalcKeyboard();
+        }
+    });
 });
 
-// ฟังก์ชันเลือกช่องกรอก (v2.0 Logic ปลอดภัย ไร้ลูปค้าง)
-function setActiveInput(inputEl) {
-    if (!inputEl) return;
-    if (activeInput === inputEl) return;
-
-    if (activeInput) {
-        processBlur(activeInput);
+// ฟังก์ชันเปิด คีย์บอร์ดย่อย
+function openCalcKeyboard(inputEl, productGroup, fieldType, tagText) {
+    if (activeInput && activeInput !== inputEl) {
+        handleBlurValidation(activeInput);
     }
 
     activeInput = inputEl;
-    userTypedInCurrentFocus = false;
+    currentProductGroup = productGroup;
+    activeFieldTagText = tagText;
 
+    // ทำไฮไลต์ช่องที่กำลังเลือก
     document.querySelectorAll('input').forEach(i => i.classList.remove('active-focus'));
     inputEl.classList.add('active-focus');
 
-    originalValueBeforeFocus = inputEl.value;
-    inputEl.value = "";
-}
+    // อัปเดตป้ายบอกช่องและสีประจำสินค้า
+    let tagEl = document.getElementById('calcFieldTag');
+    tagEl.innerText = `🏷️ ${tagText}`;
+    tagEl.className = `calc-field-tag badge-card-${productGroup.toLowerCase()}`;
 
-function processBlur(input) {
-    if (!input) return;
+    // แสดงคีย์บอร์ด
+    document.getElementById('calcKeyboard').classList.remove('hidden');
+    updatePreviewDisplay();
 
-    if (!userTypedInCurrentFocus && input.value === "" && originalValueBeforeFocus !== "") {
-        input.value = originalValueBeforeFocus;
-    } else {
-        let evalVal = evaluateExpression(input.value);
-        if (!isNaN(evalVal) && evalVal === 0) {
-            input.value = "";
-        } else if (!isNaN(evalVal) && input.value.trim() !== "") {
-            input.value = evalVal.toString();
-        }
+    // เลื่อนการ์ดสินค้าขึ้นมาให้อยู่ในระยะมองเห็น
+    let cardEl = document.getElementById(`card_${productGroup}`);
+    if (cardEl) {
+        cardEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 }
 
+function closeCalcKeyboard() {
+    if (activeInput) {
+        handleBlurValidation(activeInput);
+        activeInput.classList.remove('active-focus');
+        activeInput = null;
+    }
+    document.getElementById('calcKeyboard').classList.add('hidden');
+}
+
+// ตรวจสอบเมื่อย้ายโฟกัส หากเป็น 0 ให้ล้างค่า
 function handleBlurValidation(input) {
-    processBlur(input);
+    let evalVal = evaluateExpression(input.value);
+    if (!isNaN(evalVal) && evalVal === 0) {
+        input.value = "";
+    } else if (!isNaN(evalVal) && input.value.trim() !== "") {
+        input.value = evalVal.toString();
+    }
     evaluateAllFieldsAndCompare();
     checkAndAutoSaveBackground();
 }
 
-// ระบบกดปุ่มบนคีย์บอร์ด
+// ระบบกดปุ่มบน Custom Keyboard
 function pressKey(key) {
-    if (!activeInput) {
-        activeInput = document.getElementById('priceA');
-        activeInput.classList.add('active-focus');
-    }
-
-    if (key !== 'NEXT') {
-        userTypedInCurrentFocus = true;
-    }
+    if (!activeInput) return;
 
     let val = activeInput.value;
 
-    if (key === 'DEL') {
+    if (key === 'C') {
+        val = '';
+    } else if (key === 'DEL') {
         val = val.slice(0, -1);
-    } else if (key === 'TOGGLE_BRACKET') {
-        let openCount = (val.match(/\(/g) || []).length;
-        let closeCount = (val.match(/\)/g) || []).length;
-        let lastChar = val.slice(-1);
-        if (openCount > closeCount && lastChar !== '(' && !['+', '-', '*', '/'].includes(lastChar)) {
-            val += ')';
-        } else {
-            val += '(';
-        }
     } else if (key === 'NEXT') {
-        processBlur(activeInput);
-        evaluateAllFieldsAndCompare();
-        checkAndAutoSaveBackground();
-
+        handleBlurValidation(activeInput);
         let currentIndex = inputSequence.indexOf(activeInput.id);
         let nextIndex = (currentIndex + 1) % inputSequence.length;
-        let nextEl = document.getElementById(inputSequence[nextIndex]);
+        let nextId = inputSequence[nextIndex];
+        let nextEl = document.getElementById(nextId);
         
-        setActiveInput(nextEl);
-
-        let cardId = nextEl.id.includes('A') ? 'card_A' : (nextEl.id.includes('B') ? 'card_B' : 'card_C');
-        let cardEl = document.getElementById(cardId);
-        if (cardEl) {
-            cardEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
+        let productGroup = nextId.includes('A') ? 'A' : (nextId.includes('B') ? 'B' : 'C');
+        let fieldType = nextId.includes('price') ? 'price' : 'weight';
+        let fieldName = fieldType === 'price' ? 'ราคา' : 'จำนวน';
+        let tagText = `สินค้า ${productGroup} • ${fieldName}`;
+        
+        openCalcKeyboard(nextEl, productGroup, fieldType, tagText);
         return;
     } else {
         val += key;
     }
 
     activeInput.value = val;
+    updatePreviewDisplay();
     evaluateAllFieldsAndCompare();
     checkAndAutoSaveBackground();
 }
 
-// คำนวณสูตรคณิตศาสตร์แบบปลอดภัย
+// อัปเดตแถบ Live Preview
+function updatePreviewDisplay() {
+    if (!activeInput) return;
+    let rawVal = activeInput.value;
+    let displayEl = document.getElementById('calcFormulaDisplay');
+
+    if (!rawVal || rawVal.trim() === "") {
+        displayEl.innerText = "0";
+        return;
+    }
+
+    let evalVal = evaluateExpression(rawVal);
+    if (!isNaN(evalVal) && rawVal !== evalVal.toString()) {
+        displayEl.innerHTML = `${rawVal} <span class="calc-eval-result">(= ${evalVal})</span>`;
+    } else {
+        displayEl.innerText = rawVal;
+    }
+}
+
+// คำนวณนิพจน์ทางคณิตศาสตร์อย่างปลอดภัย (รองรับ +, -, *, /, วงเล็บ)
 function evaluateExpression(expr) {
-    if (!expr || typeof expr !== 'string') return NaN;
+    if (!expr || expr.trim() === "") return NaN;
     try {
         let sanitized = expr.replace(/[^0-9+\-*/().]/g, '');
         if (!sanitized) return NaN;
-        let result = Function('"use strict";return (' + sanitized + ')')();
-        return typeof result === 'number' && isFinite(result) ? result : NaN;
+        let res = Function(`"use strict"; return (${sanitized})`)();
+        return (typeof res === 'number' && !isNaN(res) && isFinite(res)) ? parseFloat(res.toFixed(4)) : NaN;
     } catch (e) {
         return NaN;
     }
 }
 
-// คำนวณหน่วยและเปรียบเทียบ
 function evaluateAllFieldsAndCompare() {
-    let pA = evaluateExpression(document.getElementById('priceA').value);
-    let wA = evaluateExpression(document.getElementById('weightA').value);
-    let pB = evaluateExpression(document.getElementById('priceB').value);
-    let wB = evaluateExpression(document.getElementById('weightB').value);
-    let pC = evaluateExpression(document.getElementById('priceC').value);
-    let wC = evaluateExpression(document.getElementById('weightC').value);
+    comparePrice();
+}
 
-    let unitA = (wA > 0 && pA >= 0) ? pA / wA : NaN;
-    let unitB = (wB > 0 && pB >= 0) ? pB / wB : NaN;
-    let unitC = (wC > 0 && pC >= 0) ? pC / wC : NaN;
+function checkAndAutoSaveBackground() {
+    let priceA = evaluateExpression(document.getElementById('priceA').value);
+    let weightA = evaluateExpression(document.getElementById('weightA').value);
+    let priceB = evaluateExpression(document.getElementById('priceB').value);
+    let weightB = evaluateExpression(document.getElementById('weightB').value);
+    let priceC = evaluateExpression(document.getElementById('priceC').value);
+    let weightC = evaluateExpression(document.getElementById('weightC').value);
 
-    document.getElementById('resultA').innerText = !isNaN(unitA) ? unitA.toFixed(2) + ' บาท/หน่วย' : '- บาท/หน่วย';
-    document.getElementById('resultB').innerText = !isNaN(unitB) ? unitB.toFixed(2) + ' บาท/หน่วย' : '- บาท/หน่วย';
-    document.getElementById('resultC').innerText = !isNaN(unitC) ? unitC.toFixed(2) + ' บาท/หน่วย' : '- บาท/หน่วย';
+    let validA = !isNaN(priceA) && !isNaN(weightA) && weightA > 0;
+    let validB = !isNaN(priceB) && !isNaN(weightB) && weightB > 0;
+    let validC = !isNaN(priceC) && !isNaN(weightC) && weightC > 0;
+    let countValid = (validA ? 1 : 0) + (validB ? 1 : 0) + (validC ? 1 : 0);
 
-    let banner = document.getElementById('comparisonBanner');
-    let validUnits = [];
-    if (!isNaN(unitA)) validUnits.push({ name: 'สินค้า A', val: unitA });
-    if (!isNaN(unitB)) validUnits.push({ name: 'สินค้า B', val: unitB });
-    if (!isNaN(unitC)) validUnits.push({ name: 'สินค้า C', val: unitC });
+    if (countValid >= 1 && currentCalculationResult) {
+        let inputs = {
+            priceA: document.getElementById('priceA').value,
+            weightA: document.getElementById('weightA').value,
+            priceB: document.getElementById('priceB').value,
+            weightB: document.getElementById('weightB').value,
+            priceC: document.getElementById('priceC').value,
+            weightC: document.getElementById('weightC').value
+        };
+        localStorage.setItem('price_calc_autofill', JSON.stringify(inputs));
+    } else {
+        localStorage.removeItem('price_calc_autofill');
+    }
+}
 
-    if (validUnits.length === 0) {
-        banner.className = 'comparison-banner';
-        banner.innerText = 'กรอกข้อมูลเพื่อเปรียบเทียบความคุ้มค่า';
+function comparePrice() {
+    let priceA = evaluateExpression(document.getElementById('priceA').value);
+    let weightA = evaluateExpression(document.getElementById('weightA').value);
+    let priceB = evaluateExpression(document.getElementById('priceB').value);
+    let weightB = evaluateExpression(document.getElementById('weightB').value);
+    let priceC = evaluateExpression(document.getElementById('priceC').value);
+    let weightC = evaluateExpression(document.getElementById('weightC').value);
+
+    let badgeA = document.getElementById('badgeA');
+    let badgeB = document.getElementById('badgeB');
+    let badgeC = document.getElementById('badgeC');
+    let btnSave = document.getElementById('btnSave');
+
+    badgeA.innerText = ''; badgeA.className = 'badge';
+    badgeB.innerText = ''; badgeB.className = 'badge';
+    badgeC.innerText = ''; badgeC.className = 'badge';
+
+    let validA = !isNaN(priceA) && !isNaN(weightA) && weightA > 0;
+    let validB = !isNaN(priceB) && !isNaN(weightB) && weightB > 0;
+    let validC = !isNaN(priceC) && !isNaN(weightC) && weightC > 0;
+
+    let countValid = (validA ? 1 : 0) + (validB ? 1 : 0) + (validC ? 1 : 0);
+
+    if (countValid < 1) {
+        btnSave.disabled = true;
+        currentCalculationResult = null;
         return;
     }
 
-    validUnits.sort((a, b) => a.val - b.val);
-    let best = validUnits[0];
-    banner.className = 'comparison-banner best';
-    banner.innerText = `🏆 คุ้มที่สุดคือ "${best.name}" (${best.val.toFixed(2)} บาท/หน่วย)`;
-}
+    let items = [];
+    if (validA) items.push({ id: 'A', name: 'สินค้า A', price: priceA, weight: weightA, unit: priceA / weightA, badge: badgeA });
+    if (validB) items.push({ id: 'B', name: 'สินค้า B', price: priceB, weight: weightB, unit: priceB / weightB, badge: badgeB });
+    if (validC) items.push({ id: 'C', name: 'สินค้า C', price: priceC, weight: weightC, unit: priceC / weightC, badge: badgeC });
 
-// บันทึกอัตโนมัติ
-function checkAndAutoSaveBackground() {
-    let data = {
-        priceA: document.getElementById('priceA').value,
-        weightA: document.getElementById('weightA').value,
-        priceB: document.getElementById('priceB').value,
-        weightB: document.getElementById('weightB').value,
-        priceC: document.getElementById('priceC').value,
-        weightC: document.getElementById('weightC').value,
-    };
-    localStorage.setItem('price_calc_autofill', JSON.stringify(data));
-}
+    items.sort((x, y) => x.unit - y.unit);
 
-// ล้างค่าทั้งหมด
-function clearAllFields() {
-    ['priceA', 'weightA', 'priceB', 'weightB', 'priceC', 'weightC'].forEach(id => {
-        document.getElementById(id).value = '';
-    });
-    localStorage.removeItem('price_calc_autofill');
-    evaluateAllFieldsAndCompare();
-    setActiveInput(document.getElementById('priceA'));
-}
+    let best = items[0];
+    best.badge.innerText = `คุ้มค่าที่สุด`;
+    best.badge.classList.add('badge-best');
 
-// ฟังก์ชันล้าง Cache / Service Worker เฉพาะกิจ (รักษา localStorage)
-function forceAppUpdate() {
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then((registrations) => {
-            for (let registration of registrations) {
-                registration.unregister();
-            }
-        });
+    for (let i = 1; i < items.length; i++) {
+        let item = items[i];
+        let diffPercent = ((best.unit - item.unit) / best.unit) * 100; 
+        item.badge.innerText = `${diffPercent.toFixed(0)}%`;
+        item.badge.classList.add('badge-worse');
     }
-    caches.keys().then((names) => {
-        for (let name of names) {
-            caches.delete(name);
-        }
-    });
-    alert('ล้างแคชและอัปเดตแอปสำเร็จ!');
-    window.location.reload(true);
+
+    currentCalculationResult = { 
+        inputs: {
+            priceA: document.getElementById('priceA').value,
+            weightA: document.getElementById('weightA').value,
+            priceB: document.getElementById('priceB').value,
+            weightB: document.getElementById('weightB').value,
+            priceC: document.getElementById('priceC').value,
+            weightC: document.getElementById('weightC').value
+        },
+        items, 
+        best 
+    };
+    btnSave.disabled = false;
 }
 
-// ประวัติ (Mockup เบื้องต้น)
+function clearFields() {
+    document.getElementById('priceA').value = '';
+    document.getElementById('weightA').value = '';
+    document.getElementById('priceB').value = '';
+    document.getElementById('weightB').value = '';
+    document.getElementById('priceC').value = '';
+    document.getElementById('weightC').value = '';
+    
+    document.getElementById('badgeA').innerText = ''; document.getElementById('badgeA').className = 'badge';
+    document.getElementById('badgeB').innerText = ''; document.getElementById('badgeB').className = 'badge';
+    document.getElementById('badgeC').innerText = ''; document.getElementById('badgeC').className = 'badge';
+    
+    document.getElementById('btnSave').disabled = true;
+    currentCalculationResult = null;
+    lastLoadedHistoryName = null;
+    closeCalcKeyboard();
+    localStorage.removeItem('price_calc_autofill');
+}
+
+function promptSaveRecord() {
+    if (!currentCalculationResult) return;
+
+    let defaultName = lastLoadedHistoryName || "";
+    let productName = prompt("กรอกชื่อสินค้าที่ต้องการบันทึก (เช่น น้ำยาปรับผ้านุ่ม):", defaultName);
+    if (!productName || productName.trim() === "") return;
+
+    let cleanName = productName.trim();
+    let history = JSON.parse(localStorage.getItem('price_calc_history') || '[]');
+
+    let existingIndex = history.findIndex(item => item.name.toLowerCase() === cleanName.toLowerCase());
+    
+    if (existingIndex !== -1) {
+        let confirmOverwrite = confirm(`⚠️ มีชื่อ "${cleanName}" ในประวัติอยู่แล้ว! ต้องการเซฟทับรายการเดิมหรือไม่?`);
+        if (!confirmOverwrite) {
+            setTimeout(() => promptSaveRecord(), 100);
+            return;
+        }
+        history.splice(existingIndex, 1);
+    }
+
+    let record = {
+        id: Date.now(),
+        name: cleanName,
+        date: new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' }),
+        inputs: currentCalculationResult.inputs,
+        bestUnit: currentCalculationResult.best.unit,
+        bestName: currentCalculationResult.best.name
+    };
+
+    history.unshift(record);
+    if (history.length > 20) history.pop();
+
+    localStorage.setItem('price_calc_history', JSON.stringify(history));
+    alert("✅ บันทึกข้อมูลเรียบร้อยแล้ว!");
+}
+
 function openHistoryModal() {
-    document.getElementById('historyModal').style.display = 'flex';
-    let listEl = document.getElementById('historyList');
-    listEl.innerHTML = '<p style="text-align:center; color:#64748b; padding:20px;">ยังไม่มีประวัติการบันทึก</p>';
+    let modal = document.getElementById('historyModal');
+    let listContainer = document.getElementById('historyList');
+    
+    let history = JSON.parse(localStorage.getItem('price_calc_history') || '[]');
+
+    if (history.length === 0) {
+        listContainer.innerHTML = `<p class="empty-history">ยังไม่มีประวัติการบันทึก</p>`;
+    } else {
+        listContainer.innerHTML = history.map(item => `
+            <div class="history-item">
+                <div class="history-info" onclick="loadHistoryItem(${item.id})" style="cursor: pointer; flex-grow: 1;">
+                    <strong>${item.name}</strong>
+                    <small>${item.date} — แนะนำ ${item.bestName} (${item.bestUnit.toFixed(2)} บ./หน่วย)</small>
+                </div>
+                <div class="history-actions" style="display: flex; gap: 4px;">
+                    <button onclick="editHistoryItem(event, ${item.id})" class="btn-edit">แก้ไข</button>
+                    <button onclick="deleteHistoryItem(event, ${item.id})" class="btn-del">ลบ</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    closeCalcKeyboard();
+    modal.classList.remove('hidden');
 }
 
 function closeHistoryModal() {
-    document.getElementById('historyModal').style.display = 'none';
+    document.getElementById('historyModal').classList.add('hidden');
+}
+
+function editHistoryItem(event, id) {
+    event.stopPropagation();
+    let history = JSON.parse(localStorage.getItem('price_calc_history') || '[]');
+    let target = history.find(item => item.id === id);
+    if (!target) return;
+
+    let newName = prompt("กรอกชื่อใหม่สำหรับบันทึกนี้:", target.name);
+    if (newName === null) return;
+    
+    let cleanNewName = newName.trim();
+    if (cleanNewName === "") return;
+
+    let existingIndex = history.findIndex(item => item.name.toLowerCase() === cleanNewName.toLowerCase() && item.id !== id);
+    if (existingIndex !== -1) {
+        alert(`❌ มีชื่อ "${cleanNewName}" ในประวัติอยู่แล้ว!`);
+        return;
+    }
+
+    target.name = cleanNewName;
+    localStorage.setItem('price_calc_history', JSON.stringify(history));
+    openHistoryModal();
+}
+
+function loadHistoryItem(id) {
+    let history = JSON.parse(localStorage.getItem('price_calc_history') || '[]');
+    let target = history.find(item => item.id === id);
+    if (!target) return;
+
+    document.getElementById('priceA').value = target.inputs.priceA || '';
+    document.getElementById('weightA').value = target.inputs.weightA || '';
+    document.getElementById('priceB').value = target.inputs.priceB || '';
+    document.getElementById('weightB').value = target.inputs.weightB || '';
+    document.getElementById('priceC').value = target.inputs.priceC || '';
+    document.getElementById('weightC').value = target.inputs.weightC || '';
+
+    lastLoadedHistoryName = target.name;
+
+    checkAndAutoSaveBackground();
+    closeHistoryModal();
+    evaluateAllFieldsAndCompare();
+}
+
+function deleteHistoryItem(event, id) {
+    event.stopPropagation();
+    let history = JSON.parse(localStorage.getItem('price_calc_history') || '[]');
+    let target = history.find(item => item.id === id);
+    let nameText = target ? ` "${target.name}"` : '';
+
+    if (confirm(`คุณต้องการลบประวัติรายการ${nameText} ใช่หรือไม่?`)) {
+        history = history.filter(item => item.id !== id);
+        localStorage.setItem('price_calc_history', JSON.stringify(history));
+        openHistoryModal();
+    }
+}
+
+// ฟังก์ชันอัปเดตระบบ: ล้างเฉพาะ Cache และ Service Worker โดยไม่ยุ่งกับ localStorage ของผู้ใช้
+async function forceAppUpdate() {
+    if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map(name => caches.delete(name)));
+    }
+    if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (let registration of registrations) {
+            await registration.unregister();
+        }
+    }
+    window.location.reload();
 }
