@@ -11,7 +11,7 @@ body {
     color: #1e293b;
     display: flex;
     justify-content: center;
-    padding: 16px 12px 280px 12px; /* สำรองพื้นที่ด้านล่างเพื่อไม่ให้คีย์บอร์ดลอยบังปุ่มล่างสุด */
+    padding: 12px 12px 280px 12px; /* สำรองพื้นที่ด้านล่างป้องกันคีย์บอร์ดฝังถาวรบังปุ่ม */
 }
 
 .app-container {
@@ -68,7 +68,7 @@ body {
 
 .product-card {
     background: #e2e8f0;
-    padding: 12px;
+    padding: 10px 12px;
     border-radius: 12px;
     margin-bottom: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
@@ -113,7 +113,7 @@ h3 {
 
 input {
     width: 50%;
-    padding: 10px 8px; 
+    padding: 8px; 
     border: 1.5px solid #cbd5e1;
     border-radius: 8px;
     font-size: 15px; 
@@ -128,7 +128,7 @@ input {
 input.active-focus {
     border-color: #2563eb;
     background: #ffffff;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
 }
 
 input::placeholder {
@@ -140,7 +140,7 @@ input::placeholder {
 .action-buttons {
     display: flex;
     gap: 8px;
-    margin-top: 12px;
+    margin-top: 8px;
 }
 
 button {
@@ -182,13 +182,13 @@ button {
 
 .app-footer {
     text-align: center;
-    margin-top: 16px;
+    margin-top: 12px;
     color: #1e293b;
     font-size: 11px;
 }
 
 /* ---------------------------------------------------- */
-/* Custom Keyboard & Live Preview Bar Style             */
+/* Permanent Sticky In-App Keyboard Style               */
 /* ---------------------------------------------------- */
 .calc-keyboard {
     position: fixed;
@@ -196,73 +196,36 @@ button {
     left: 0;
     right: 0;
     background-color: #0f172a;
-    border-top-left-radius: 18px;
-    border-top-right-radius: 18px;
-    padding: 10px 12px 14px 12px;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
-    z-index: 99;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    padding: 8px 10px 12px 10px;
+    box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.25);
+    z-index: 90;
     max-width: 420px;
     margin: 0 auto;
 }
 
-/* แถบ Preview ด้านบนของคีย์บอร์ด */
-.calc-preview-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: #1e293b;
-    padding: 8px 12px;
-    border-radius: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #334155;
+/* แถบเครื่องหมายบนสุด */
+.calc-op-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-bottom: 6px;
 }
 
-.calc-field-tag {
-    font-size: 12px;
-    font-weight: 700;
-    padding: 4px 8px;
-    border-radius: 6px;
-    white-space: nowrap;
-}
-
-.badge-card-a { background: #dbeafe; color: #1e40af; }
-.badge-card-b { background: #d1fae5; color: #065f46; }
-.badge-card-c { background: #fef3c7; color: #92400e; }
-
-.calc-formula-display {
-    color: #f8fafc;
-    font-size: 16px;
-    font-weight: 700;
-    overflow-x: auto;
-    text-align: right;
-    flex-grow: 1;
-    margin: 0 10px;
-}
-
-.calc-eval-result {
-    color: #38bdf8;
-    font-size: 14px;
-}
-
-.btn-close-kb {
-    background: transparent;
-    color: #94a3b8;
-    font-size: 16px;
-    padding: 4px 8px;
-}
-
-/* Keypad Grid (ปุ่มกดขนาดใหญ่คับจอ) */
+/* แป้นพิมพ์ตัวเลขและปุ่มควบคุม */
 .calc-keypad {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
+    grid-template-rows: repeat(4, auto);
+    gap: 6px;
 }
 
 .key {
-    padding: 14px 0;
-    font-size: 20px;
+    padding: 12px 0;
+    font-size: 18px;
     font-weight: 700;
-    border-radius: 10px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -270,7 +233,7 @@ button {
 }
 
 .key:active {
-    transform: scale(0.94);
+    transform: scale(0.93);
     opacity: 0.8;
 }
 
@@ -282,23 +245,22 @@ button {
 .key-op {
     background-color: #475569;
     color: #38bdf8;
-    font-size: 22px;
+    font-size: 20px;
 }
 
-.key-clear {
+.key-del {
     background-color: #ef4444;
     color: #ffffff;
 }
 
-.key-del {
-    background-color: #f59e0b;
-    color: #ffffff;
-}
-
+/* ปุ่ม NEXT ➔ ทรงสูงขวาล่างกินพื้นที่ 3 แถว */
 .key-next {
+    grid-column: 4;
+    grid-row: 2 / span 3;
     background-color: #2563eb;
     color: #ffffff;
     font-size: 15px;
+    height: 100%;
 }
 
 /* ---------------------------------------------------- */
