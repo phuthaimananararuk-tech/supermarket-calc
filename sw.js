@@ -1,10 +1,11 @@
-const CACHE_NAME = 'tekum-v3.1';
+const CACHE_NAME = 'เทียบคุ้ม-v3.0';
 const ASSETS = [
   './',
   './index.html',
   './style.css',
   './app.js',
-  './manifest.json'
+  './manifest.json',
+  './icon.png'
 ];
 
 self.addEventListener('install', (e) => {
