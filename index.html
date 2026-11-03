@@ -3,129 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>เทียบคุ้ม - คำนวณความคุ้มค่า</title>
-    <link rel="stylesheet" href="style.css">
+    <title>เทียบคุ้ม (v3.0)</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#94a3b8">
+    <link rel="stylesheet" href="style.css">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="เทียบคุ้ม (v3.0)">
+    <style>
+        body { background-color: #94a3b8; color: #1e293b; margin: 0; }
+    </style>
 </head>
-<body>
-
+<body ontouchstart="">
     <div class="app-container">
-        <!-- Header -->
         <header class="app-header">
-            <h1>เทียบคุ้ม</h1>
-            <div class="header-actions">
-                <button id="historyBtn" class="icon-btn" title="ประวัติ">📋</button>
-                <button id="clearBtn" class="icon-btn" title="ล้างค่า">🗑️</button>
-                <button id="versionBtn" class="version-badge" title="อัปเดตแอป">v3.1</button>
+            <div class="brand-title">
+                <span>เทียบคุ้ม</span>
+                <button onclick="forceAppUpdate()" class="app-version" title="แตะเพื่ออัปเดตทันที">v3.0</button>
             </div>
+            <button onclick="openHistoryModal()" class="btn-history" title="ประวัติการบันทึก">📜 ประวัติ</button>
         </header>
-
-        <!-- Main Content Area -->
-        <main class="content-scroll">
-            <!-- สินค้า A -->
-            <div class="product-card" id="card_A">
-                <div class="card-header">
-                    <span class="badge badge-a">สินค้า A</span>
-                    <span class="unit-price-display" id="resultA">- บาท/หน่วย</span>
-                </div>
-                <div class="input-row">
-                    <div class="input-group">
-                        <label>ราคา</label>
-                        <input type="text" id="priceA" placeholder="0" readonly inputmode="none" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" onclick="setActiveInput(this)">
-                    </div>
-                    <div class="input-group">
-                        <label>ปริมาณ / น้ำหนัก</label>
-                        <input type="text" id="weightA" placeholder="0" readonly inputmode="none" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" onclick="setActiveInput(this)">
-                    </div>
-                </div>
+        
+        <!-- สินค้า A -->
+        <div class="product-card card-a" id="card_A">
+            <h3>สินค้า A <span id="badgeA" class="badge"></span></h3>
+            <div class="input-group">
+                <input type="text" id="priceA" placeholder="ราคา" readonly onclick="openCalcKeyboard(this, 'A', 'price', 'สินค้า A • ราคา')">
+                <input type="text" id="weightA" placeholder="จำนวน" readonly onclick="openCalcKeyboard(this, 'A', 'weight', 'สินค้า A • จำนวน')">
             </div>
+        </div>
 
-            <!-- สินค้า B -->
-            <div class="product-card" id="card_B">
-                <div class="card-header">
-                    <span class="badge badge-b">สินค้า B</span>
-                    <span class="unit-price-display" id="resultB">- บาท/หน่วย</span>
-                </div>
-                <div class="input-row">
-                    <div class="input-group">
-                        <label>ราคา</label>
-                        <input type="text" id="priceB" placeholder="0" readonly inputmode="none" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" onclick="setActiveInput(this)">
-                    </div>
-                    <div class="input-group">
-                        <label>ปริมาณ / น้ำหนัก</label>
-                        <input type="text" id="weightB" placeholder="0" readonly inputmode="none" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" onclick="setActiveInput(this)">
-                    </div>
-                </div>
+        <!-- สินค้า B -->
+        <div class="product-card card-b" id="card_B">
+            <h3>สินค้า B <span id="badgeB" class="badge"></span></h3>
+            <div class="input-group">
+                <input type="text" id="priceB" placeholder="ราคา" readonly onclick="openCalcKeyboard(this, 'B', 'price', 'สินค้า B • ราคา')">
+                <input type="text" id="weightB" placeholder="จำนวน" readonly onclick="openCalcKeyboard(this, 'B', 'weight', 'สินค้า B • จำนวน')">
             </div>
+        </div>
 
-            <!-- สินค้า C -->
-            <div class="product-card" id="card_C">
-                <div class="card-header">
-                    <span class="badge badge-c">สินค้า C</span>
-                    <span class="unit-price-display" id="resultC">- บาท/หน่วย</span>
-                </div>
-                <div class="input-row">
-                    <div class="input-group">
-                        <label>ราคา</label>
-                        <input type="text" id="priceC" placeholder="0" readonly inputmode="none" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" onclick="setActiveInput(this)">
-                    </div>
-                    <div class="input-group">
-                        <label>ปริมาณ / น้ำหนัก</label>
-                        <input type="text" id="weightC" placeholder="0" readonly inputmode="none" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" onclick="setActiveInput(this)">
-                    </div>
-                </div>
+        <!-- สินค้า C -->
+        <div class="product-card card-c" id="card_C">
+            <h3>สินค้า C <span id="badgeC" class="badge"></span></h3>
+            <div class="input-group">
+                <input type="text" id="priceC" placeholder="ราคา" readonly onclick="openCalcKeyboard(this, 'C', 'price', 'สินค้า C • ราคา')">
+                <input type="text" id="weightC" placeholder="จำนวน" readonly onclick="openCalcKeyboard(this, 'C', 'weight', 'สินค้า C • จำนวน')">
             </div>
+        </div>
 
-            <!-- Summary / Comparison Banner -->
-            <div class="comparison-banner" id="comparisonBanner">
-                กรอกข้อมูลเพื่อเปรียบเทียบความคุ้มค่า
-            </div>
-        </main>
+        <div class="action-buttons">
+            <button onclick="promptSaveRecord()" class="btn-save" id="btnSave" disabled>บันทึกรายการนี้</button>
+            <button onclick="clearFields()" class="btn-clear">ล้าง</button>
+        </div>
 
-        <!-- Permanent Sticky In-App Keyboard (4 Columns) -->
-        <nav class="sticky-keyboard">
-            <div class="keyboard-grid">
-                <!-- แถวที่ 1 -->
-                <button class="key-btn" onclick="pressKey('7')">7</button>
-                <button class="key-btn" onclick="pressKey('8')">8</button>
-                <button class="key-btn" onclick="pressKey('9')">9</button>
-                <button class="key-btn op-key" onclick="pressKey('/')">÷</button>
-
-                <!-- แถวที่ 2 -->
-                <button class="key-btn" onclick="pressKey('4')">4</button>
-                <button class="key-btn" onclick="pressKey('5')">5</button>
-                <button class="key-btn" onclick="pressKey('6')">6</button>
-                <button class="key-btn op-key" onclick="pressKey('*')">×</button>
-
-                <!-- แถวที่ 3 -->
-                <button class="key-btn" onclick="pressKey('1')">1</button>
-                <button class="key-btn" onclick="pressKey('2')">2</button>
-                <button class="key-btn" onclick="pressKey('3')">3</button>
-                <button class="key-btn op-key" onclick="pressKey('-')">-</button>
-
-                <!-- แถวที่ 4 -->
-                <button class="key-btn" onclick="pressKey('0')">0</button>
-                <button class="key-btn" onclick="pressKey('.')">.</button>
-                <button class="key-btn" onclick="pressKey('TOGGLE_BRACKET')">( )</button>
-                <button class="key-btn op-key" onclick="pressKey('+')">+</button>
-
-                <!-- แถวพิเศษด้านล่าง (รวมช่อง DEL กับ NEXT) -->
-                <button class="key-btn action-del" onclick="pressKey('DEL')">⌫ DEL</button>
-                <button class="key-btn action-next" onclick="pressKey('NEXT')">NEXT ➔</button>
-            </div>
-        </nav>
+        <!-- เครดิตผู้พัฒนา -->
+        <footer class="app-footer">
+            <small>by Phuthai Mananararuk & Gemini</small>
+        </footer>
     </div>
 
-    <!-- History Modal -->
-    <div id="historyModal" class="modal-overlay" style="display: none;">
+    <!-- Custom In-App Calculator Keyboard -->
+    <div id="calcKeyboard" class="calc-keyboard hidden">
+        <!-- Live Preview Header Bar -->
+        <div class="calc-preview-bar">
+            <div id="calcFieldTag" class="calc-field-tag badge-card-a">🏷️ สินค้า A • ราคา</div>
+            <div id="calcFormulaDisplay" class="calc-formula-display">0</div>
+            <button onclick="closeCalcKeyboard()" class="btn-close-kb">✕</button>
+        </div>
+        <!-- Keypad Grid -->
+        <div class="calc-keypad">
+            <button class="key key-op" onclick="pressKey('(')">(</button>
+            <button class="key key-op" onclick="pressKey(')')">)</button>
+            <button class="key key-clear" onclick="pressKey('C')">C</button>
+            <button class="key key-del" onclick="pressKey('DEL')">⌫</button>
+
+            <button class="key key-num" onclick="pressKey('7')">7</button>
+            <button class="key key-num" onclick="pressKey('8')">8</button>
+            <button class="key key-num" onclick="pressKey('9')">9</button>
+            <button class="key key-op" onclick="pressKey('/')">÷</button>
+
+            <button class="key key-num" onclick="pressKey('4')">4</button>
+            <button class="key key-num" onclick="pressKey('5')">5</button>
+            <button class="key key-num" onclick="pressKey('6')">6</button>
+            <button class="key key-op" onclick="pressKey('*')">×</button>
+
+            <button class="key key-num" onclick="pressKey('1')">1</button>
+            <button class="key key-num" onclick="pressKey('2')">2</button>
+            <button class="key key-num" onclick="pressKey('3')">3</button>
+            <button class="key key-op" onclick="pressKey('-')">-</button>
+
+            <button class="key key-num" onclick="pressKey('0')">0</button>
+            <button class="key key-num" onclick="pressKey('.')">.</button>
+            <button class="key key-next" onclick="pressKey('NEXT')">Next ➔</button>
+            <button class="key key-op" onclick="pressKey('+')">+</button>
+        </div>
+    </div>
+
+    <!-- Modal แสดงประวัติสินค้า -->
+    <div id="historyModal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>ประวัติการเปรียบเทียบ</h3>
-                <button id="closeModalBtn" class="close-btn">&times;</button>
+                <h3>ประวัติราคาที่บันทึก</h3>
+                <button onclick="closeHistoryModal()" class="btn-close">✕</button>
             </div>
-            <div id="historyList" class="modal-body">
-                <!-- รายการประวัติจะถูกเติมด้วย JS -->
+            <div id="historyList" class="history-list">
+                <!-- รายการประวัติจะถูกเติมเข้ามาตรงนี้ -->
             </div>
         </div>
     </div>
@@ -133,7 +114,7 @@
     <script src="app.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
+            navigator.serviceWorker.register('sw.js').catch(() => {});
         }
     </script>
 </body>
