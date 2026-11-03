@@ -4,6 +4,7 @@ let inputSequence = ['priceA', 'weightA', 'priceB', 'weightB', 'priceC', 'weight
 let originalValueBeforeFocus = "";
 let userTypedInCurrentFocus = false;
 
+// โหลดข้อมูล Auto-Save ทันทีที่เปิดแอป และตั้งค่า Default Focus
 window.addEventListener('DOMContentLoaded', () => {
     let savedState = localStorage.getItem('price_calc_autofill');
     if (savedState) {
@@ -19,40 +20,44 @@ window.addEventListener('DOMContentLoaded', () => {
         } catch (e) {}
     }
 
+    // กำหนดค่าเริ่มต้น แต่ยังไม่บังคับล็อกโฟกัสค้าง
     let defaultInput = document.getElementById('priceA');
-    setActiveInput(defaultInput);
+    // ให้เซ็ตค่าเฉยๆ ไม่เรียก setActiveInput ซ้อนตอนโหลด เพื่อป้องกันบล็อก
+    activeInput = defaultInput;
+    defaultInput.classList.add('active-focus');
+    originalValueBeforeFocus = defaultInput.value;
+    defaultInput.value = "";
 });
 
-// ฟังก์ชันเลือกช่องกรอก (แก้ไขปัญหาระบบล็อกและจำค่าเดิมให้แม่นยำ)
+// ฟังก์ชันเลือกช่องกรอก (เวอร์ชันปลอดภัย ไร้ลูปค้าง)
 function setActiveInput(inputEl) {
     if (!inputEl) return;
     
-    // ถ้าจิ้มซ้ำช่องเดิมที่กำลังโฟกัสอยู่แล้ว ไม่ต้องทำอะไรเพิ่ม
+    // ถ้าจิ้มช่องเดิมที่กำลังเลือกอยู่แล้ว ไม่ต้องทำอะไร
     if (activeInput === inputEl) return;
 
-    // ถ้ามีช่องเก่าค้างอยู่ ให้ตรวจสอบและเคลียร์ค่าเก่าก่อน
+    // 1. ตรวจสอบและเคลียร์ค่าช่องเก่า (ถ้ามี)
     if (activeInput) {
-        handleBlurValidation(activeInput);
+        processBlur(activeInput);
     }
 
+    // 2. สลับมาเป็นช่องใหม่
     activeInput = inputEl;
-
-    // บันทึกค่าปัจจุบันไว้ก่อนเคลียร์ (เฉพาะตอนที่ช่องยังไม่ถูกเคลียร์)
-    originalValueBeforeFocus = inputEl.value;
     userTypedInCurrentFocus = false;
 
+    // เอาไฮไลต์ออกจากทุกช่อง แล้วใส่ให้ช่องใหม่
     document.querySelectorAll('input').forEach(i => i.classList.remove('active-focus'));
     inputEl.classList.add('active-focus');
 
-    // เคลียร์ค่าให้ว่างเพื่อให้พิมพ์ใหม่ได้ทันที
+    // 3. จำค่าเดิมไว้ แล้วเคลียร์ช่องให้ว่างเพื่อรอพิมพ์
+    originalValueBeforeFocus = inputEl.value;
     inputEl.value = "";
 }
 
-// ตรวจสอบเมื่อย้ายโฟกัสออก
-function handleBlurValidation(input) {
+// แยกฟังก์ชันประมวลผลตอนย้ายออก ป้องกันการเรียกซ้ำซ้อน
+function processBlur(input) {
     if (!input) return;
 
-    // ถ้าไม่ได้พิมพ์อะไรเลย และช่องว่างเปล่า ➔ คืนค่าเดิมกลับมา
     if (!userTypedInCurrentFocus && input.value === "" && originalValueBeforeFocus !== "") {
         input.value = originalValueBeforeFocus;
     } else {
@@ -63,6 +68,11 @@ function handleBlurValidation(input) {
             input.value = evalVal.toString();
         }
     }
+}
+
+// ฟังก์ชันสำหรับเรียกตอนจำเป็นต้องตรวจสอบค่าทั้งหมด
+function handleBlurValidation(input) {
+    processBlur(input);
     evaluateAllFieldsAndCompare();
     checkAndAutoSaveBackground();
 }
@@ -70,7 +80,8 @@ function handleBlurValidation(input) {
 // ระบบกดปุ่มบนคีย์บอร์ด
 function pressKey(key) {
     if (!activeInput) {
-        setActiveInput(document.getElementById('priceA'));
+        activeInput = document.getElementById('priceA');
+        activeInput.classList.add('active-focus');
     }
 
     if (key !== 'NEXT') {
@@ -91,10 +102,15 @@ function pressKey(key) {
             val += '(';
         }
     } else if (key === 'NEXT') {
-        handleBlurValidation(activeInput);
+        // บันทึกและตรวจสอบค่าช่องปัจจุบันก่อนย้าย
+        processBlur(activeInput);
+        evaluateAllFieldsAndCompare();
+        checkAndAutoSaveBackground();
+
         let currentIndex = inputSequence.indexOf(activeInput.id);
         let nextIndex = (currentIndex + 1) % inputSequence.length;
-        let nextEl = document.getElementById(nextSequenceId(nextIndex));
+        let nextEl = document.getElementById(inputSequence[nextIndex]);
+        
         setActiveInput(nextEl);
 
         let cardId = nextEl.id.includes('A') ? 'card_A' : (nextEl.id.includes('B') ? 'card_B' : 'card_C');
