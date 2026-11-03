@@ -1,11 +1,9 @@
 let activeInput = null;
 let inputSequence = ['priceA', 'weightA', 'priceB', 'weightB', 'priceC', 'weightC'];
 
-// ตัวแปรสำหรับจำค่าเดิมและเช็คสถานะการพิมพ์ (พฤติกรรมแบบ v2.0)
 let originalValueBeforeFocus = "";
 let userTypedInCurrentFocus = false;
 
-// โหลดข้อมูล Auto-Save ทันทีที่เปิดแอป และตั้งค่า Default Focus
 window.addEventListener('DOMContentLoaded', () => {
     let savedState = localStorage.getItem('price_calc_autofill');
     if (savedState) {
@@ -25,32 +23,36 @@ window.addEventListener('DOMContentLoaded', () => {
     setActiveInput(defaultInput);
 });
 
-// ฟังก์ชันเลือกช่องกรอก (v2.0 Logic: จิ้มปุ๊บตัวเลขหาย จำค่าเดิมไว้)
+// ฟังก์ชันเลือกช่องกรอก (แก้ไขปัญหาระบบล็อกและจำค่าเดิมให้แม่นยำ)
 function setActiveInput(inputEl) {
     if (!inputEl) return;
+    
+    // ถ้าจิ้มซ้ำช่องเดิมที่กำลังโฟกัสอยู่แล้ว ไม่ต้องทำอะไรเพิ่ม
+    if (activeInput === inputEl) return;
 
-    if (activeInput && activeInput !== inputEl) {
+    // ถ้ามีช่องเก่าค้างอยู่ ให้ตรวจสอบและเคลียร์ค่าเก่าก่อน
+    if (activeInput) {
         handleBlurValidation(activeInput);
     }
 
     activeInput = inputEl;
 
-    // บันทึกค่าเดิมก่อนเคลียร์ และรีเซ็ตสถานะการพิมพ์
+    // บันทึกค่าปัจจุบันไว้ก่อนเคลียร์ (เฉพาะตอนที่ช่องยังไม่ถูกเคลียร์)
     originalValueBeforeFocus = inputEl.value;
     userTypedInCurrentFocus = false;
 
     document.querySelectorAll('input').forEach(i => i.classList.remove('active-focus'));
     inputEl.classList.add('active-focus');
 
-    // เคลียร์ค่าชั่วคราวให้ว่างทันทีที่จิ้ม
+    // เคลียร์ค่าให้ว่างเพื่อให้พิมพ์ใหม่ได้ทันที
     inputEl.value = "";
 }
 
-// ตรวจสอบเมื่อย้ายโฟกัส (ถ้าไม่ได้พิมพ์อะไรเลย แล้วย้ายหนี ให้คืนค่าเดิมกลับมา)
+// ตรวจสอบเมื่อย้ายโฟกัสออก
 function handleBlurValidation(input) {
     if (!input) return;
 
-    // ถ้าไม่ได้พิมพ์อะไรเลยในช่วงที่โฟกัส และช่องว่างเปล่า ➔ คืนค่าเดิมกลับมา
+    // ถ้าไม่ได้พิมพ์อะไรเลย และช่องว่างเปล่า ➔ คืนค่าเดิมกลับมา
     if (!userTypedInCurrentFocus && input.value === "" && originalValueBeforeFocus !== "") {
         input.value = originalValueBeforeFocus;
     } else {
@@ -71,7 +73,6 @@ function pressKey(key) {
         setActiveInput(document.getElementById('priceA'));
     }
 
-    // หากมีการกดปุ่มใดๆ (ที่ไม่ใช่ NEXT) ให้ถือว่าผู้เริ่มพิมพ์/แก้ไขแล้ว
     if (key !== 'NEXT') {
         userTypedInCurrentFocus = true;
     }
