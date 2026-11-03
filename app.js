@@ -7,6 +7,9 @@ let activeFieldTagText = "";
 let currentProductGroup = "A";
 let inputSequence = ['priceA', 'weightA', 'priceB', 'weightB', 'priceC', 'weightC'];
 
+// ตัวเก็บค่าเดิมก่อนแก้ไข เพื่อคืนค่าถ้ายกเลิกหรือไม่ได้พิมพ์
+let originalValueBeforeFocus = "";
+
 // โหลดข้อมูล Auto-Save ทันทีที่เปิดแอป
 window.addEventListener('DOMContentLoaded', () => {
     let savedState = localStorage.getItem('price_calc_autofill');
@@ -48,6 +51,10 @@ function openCalcKeyboard(inputEl, productGroup, fieldType, tagText) {
     document.querySelectorAll('input').forEach(i => i.classList.remove('active-focus'));
     inputEl.classList.add('active-focus');
 
+    // จำค่าเดิมไว้ แล้วเคลียร์ช่องให้ว่างชั่วคราวเพื่อให้พิมพ์ใหม่ได้ทันที
+    originalValueBeforeFocus = inputEl.value;
+    inputEl.value = "";
+
     // อัปเดตป้ายบอกช่องและสีประจำสินค้า
     let tagEl = document.getElementById('calcFieldTag');
     tagEl.innerText = `🏷️ ${tagText}`;
@@ -73,13 +80,19 @@ function closeCalcKeyboard() {
     document.getElementById('calcKeyboard').classList.add('hidden');
 }
 
-// ตรวจสอบเมื่อย้ายโฟกัส หากเป็น 0 ให้ล้างค่า
+// ตรวจสอบเมื่อย้ายโฟกัส หากไม่ได้พิมพ์อะไรใหม่ ให้คืนค่าเดิมกลับมา
 function handleBlurValidation(input) {
-    let evalVal = evaluateExpression(input.value);
-    if (!isNaN(evalVal) && evalVal === 0) {
-        input.value = "";
-    } else if (!isNaN(evalVal) && input.value.trim() !== "") {
-        input.value = evalVal.toString();
+    if (!input) return;
+
+    if (input.value === "" && originalValueBeforeFocus !== "") {
+        input.value = originalValueBeforeFocus;
+    } else {
+        let evalVal = evaluateExpression(input.value);
+        if (!isNaN(evalVal) && evalVal === 0) {
+            input.value = "";
+        } else if (!isNaN(evalVal) && input.value.trim() !== "") {
+            input.value = evalVal.toString();
+        }
     }
     evaluateAllFieldsAndCompare();
     checkAndAutoSaveBackground();
@@ -138,7 +151,7 @@ function updatePreviewDisplay() {
     }
 }
 
-// คำนวณนิพจน์ทางคณิตศาสตร์อย่างปลอดภัย (รองรับ +, -, *, /, วงเล็บ)
+// คำนวณนิพจน์ทางคณิตศาสตร์อย่างปลอดภัย
 function evaluateExpression(expr) {
     if (!expr || expr.trim() === "") return NaN;
     try {
@@ -387,7 +400,6 @@ function deleteHistoryItem(event, id) {
     }
 }
 
-// ฟังก์ชันอัปเดตระบบ: ล้างเฉพาะ Cache และ Service Worker โดยไม่ยุ่งกับ localStorage ของผู้ใช้
 async function forceAppUpdate() {
     if ('caches' in window) {
         const cacheNames = await caches.keys();
