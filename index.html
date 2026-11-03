@@ -55,7 +55,6 @@
             <button onclick="clearFields()" class="btn-clear">ล้าง</button>
         </div>
 
-        <!-- เครดิตผู้พัฒนา -->
         <footer class="app-footer">
             <small>by Phuthai Mananararuk & Gemini</small>
         </footer>
@@ -63,13 +62,11 @@
 
     <!-- Custom In-App Calculator Keyboard -->
     <div id="calcKeyboard" class="calc-keyboard hidden">
-        <!-- Live Preview Header Bar -->
         <div class="calc-preview-bar">
             <div id="calcFieldTag" class="calc-field-tag badge-card-a">🏷️ สินค้า A • ราคา</div>
             <div id="calcFormulaDisplay" class="calc-formula-display">0</div>
             <button onclick="closeCalcKeyboard()" class="btn-close-kb">✕</button>
         </div>
-        <!-- Keypad Grid -->
         <div class="calc-keypad">
             <button class="key key-op" onclick="pressKey('(')">(</button>
             <button class="key key-op" onclick="pressKey(')')">)</button>
@@ -105,9 +102,7 @@
                 <h3>ประวัติราคาที่บันทึก</h3>
                 <button onclick="closeHistoryModal()" class="btn-close">✕</button>
             </div>
-            <div id="historyList" class="history-list">
-                <!-- รายการประวัติจะถูกเติมเข้ามาตรงนี้ -->
-            </div>
+            <div id="historyList" class="history-list"></div>
         </div>
     </div>
 
