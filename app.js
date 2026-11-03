@@ -1,6 +1,11 @@
 let currentCalculationResult = null;
-let fieldState = {};
 let lastLoadedHistoryName = null;
+
+// ข้อมูลสถานะคีย์บอร์ดที่กำลังเปิดอยู่
+let activeInput = null;
+let activeFieldTagText = "";
+let currentProductGroup = "A";
+let inputSequence = ['priceA', 'weightA', 'priceB', 'weightB', 'priceC', 'weightC'];
 
 // โหลดข้อมูล Auto-Save ทันทีที่เปิดแอป
 window.addEventListener('DOMContentLoaded', () => {
@@ -14,18 +19,151 @@ window.addEventListener('DOMContentLoaded', () => {
             document.getElementById('weightB').value = data.weightB || '';
             document.getElementById('priceC').value = data.priceC || '';
             document.getElementById('weightC').value = data.weightC || '';
-            comparePrice();
+            evaluateAllFieldsAndCompare();
         } catch (e) {}
     }
+
+    // ปิดคีย์บอร์ดเมื่อแตะพื้นที่ว่างภายนอก
+    document.addEventListener('click', (e) => {
+        let kb = document.getElementById('calcKeyboard');
+        if (!kb.classList.contains('hidden') && 
+            !kb.contains(e.target) && 
+            activeInput && !activeInput.contains(e.target)) {
+            closeCalcKeyboard();
+        }
+    });
 });
 
+// ฟังก์ชันเปิด คีย์บอร์ดย่อย
+function openCalcKeyboard(inputEl, productGroup, fieldType, tagText) {
+    if (activeInput && activeInput !== inputEl) {
+        handleBlurValidation(activeInput);
+    }
+
+    activeInput = inputEl;
+    currentProductGroup = productGroup;
+    activeFieldTagText = tagText;
+
+    // ทำไฮไลต์ช่องที่กำลังเลือก
+    document.querySelectorAll('input').forEach(i => i.classList.remove('active-focus'));
+    inputEl.classList.add('active-focus');
+
+    // อัปเดตป้ายบอกช่องและสีประจำสินค้า
+    let tagEl = document.getElementById('calcFieldTag');
+    tagEl.innerText = `🏷️ ${tagText}`;
+    tagEl.className = `calc-field-tag badge-card-${productGroup.toLowerCase()}`;
+
+    // แสดงคีย์บอร์ด
+    document.getElementById('calcKeyboard').classList.remove('hidden');
+    updatePreviewDisplay();
+
+    // เลื่อนการ์ดสินค้าขึ้นมาให้อยู่ในระยะมองเห็น
+    let cardEl = document.getElementById(`card_${productGroup}`);
+    if (cardEl) {
+        cardEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+
+function closeCalcKeyboard() {
+    if (activeInput) {
+        handleBlurValidation(activeInput);
+        activeInput.classList.remove('active-focus');
+        activeInput = null;
+    }
+    document.getElementById('calcKeyboard').classList.add('hidden');
+}
+
+// ตรวจสอบเมื่อย้ายโฟกัส หากเป็น 0 ให้ล้างค่า
+function handleBlurValidation(input) {
+    let evalVal = evaluateExpression(input.value);
+    if (!isNaN(evalVal) && evalVal === 0) {
+        input.value = "";
+    } else if (!isNaN(evalVal) && input.value.trim() !== "") {
+        // หากสูตรสมบูรณ์แล้ว ให้แปลงเป็นผลลัพธ์ตัวเลขกลมๆ
+        input.value = evalVal.toString();
+    }
+    evaluateAllFieldsAndCompare();
+    checkAndAutoSaveBackground();
+}
+
+// ระบบกดปุ่มบน Custom Keyboard
+function pressKey(key) {
+    if (!activeInput) return;
+
+    let val = activeInput.value;
+
+    if (key === 'C') {
+        val = '';
+    } else if (key === 'DEL') {
+        val = val.slice(0, -1);
+    } else if (key === 'NEXT') {
+        handleBlurValidation(activeInput);
+        let currentIndex = inputSequence.indexOf(activeInput.id);
+        let nextIndex = (currentIndex + 1) % inputSequence.length;
+        let nextId = inputSequence[nextIndex];
+        let nextEl = document.getElementById(nextId);
+        
+        let productGroup = nextId.includes('A') ? 'A' : (nextId.includes('B') ? 'B' : 'C');
+        let fieldType = nextId.includes('price') ? 'price' : 'weight';
+        let fieldName = fieldType === 'price' ? 'ราคา' : 'จำนวน';
+        let tagText = `สินค้า ${productGroup} • ${fieldName}`;
+        
+        openCalcKeyboard(nextEl, productGroup, fieldType, tagText);
+        return;
+    } else {
+        val += key;
+    }
+
+    activeInput.value = val;
+    updatePreviewDisplay();
+    evaluateAllFieldsAndCompare();
+    checkAndAutoSaveBackground();
+}
+
+// อัปเดตแถบ Live Preview
+function updatePreviewDisplay() {
+    if (!activeInput) return;
+    let rawVal = activeInput.value;
+    let displayEl = document.getElementById('calcFormulaDisplay');
+
+    if (!rawVal || rawVal.trim() === "") {
+        displayEl.innerText = "0";
+        return;
+    }
+
+    let evalVal = evaluateExpression(rawVal);
+    if (!isNaN(evalVal) && rawVal !== evalVal.toString()) {
+        displayEl.innerHTML = `${rawVal} <span class="calc-eval-result">(= ${evalVal})</span>`;
+    } else {
+        displayEl.innerText = rawVal;
+    }
+}
+
+// คำนวณนิพจน์ทางคณิตศาสตร์อย่างปลอดภัย (รองรับ +, -, *, /, วงเล็บ)
+function evaluateExpression(expr) {
+    if (!expr || expr.trim() === "") return NaN;
+    try {
+        // อนุญาตเฉพาะตัวเลข เครื่องหมายทางคณิตศาสตร์ วงเล็บ และจุดทศนิยม
+        let sanitized = expr.replace(/[^0-9+\-*/().]/g, '');
+        if (!sanitized) return NaN;
+        let res = Function(`"use strict"; return (${sanitized})`)();
+        return (typeof res === 'number' && !isNaN(res) && isFinite(res)) ? parseFloat(res.toFixed(4)) : NaN;
+    } catch (e) {
+        return NaN;
+    }
+}
+
+function evaluateAllFieldsAndCompare() {
+    comparePrice();
+}
+
 function checkAndAutoSaveBackground() {
-    let priceA = parseFloat(document.getElementById('priceA').value);
-    let weightA = parseFloat(document.getElementById('weightA').value);
-    let priceB = parseFloat(document.getElementById('priceB').value);
-    let weightB = parseFloat(document.getElementById('weightB').value);
-    let priceC = parseFloat(document.getElementById('priceC').value);
-    let weightC = parseFloat(document.getElementById('weightC').value);
+    let priceA = evaluateExpression(document.getElementById('priceA').value);
+    let weightA = evaluateExpression(document.getElementById('weightA').value);
+    let priceB = evaluateExpression(document.getElementById('priceB').value);
+    let weightB = evaluateExpression(document.getElementById('weightB').value);
+    let priceC = evaluateExpression(document.getElementById('priceC').value);
+    let weightC = evaluateExpression(document.getElementById('weightC').value);
 
     let validA = !isNaN(priceA) && !isNaN(weightA) && weightA > 0;
     let validB = !isNaN(priceB) && !isNaN(weightB) && weightB > 0;
@@ -47,43 +185,13 @@ function checkAndAutoSaveBackground() {
     }
 }
 
-function handleFocus(input) {
-    fieldState[input.id] = {
-        initialValue: input.value,
-        isTouched: false
-    };
-    input.value = "";
-}
-
-function handleInputChange(input) {
-    if (fieldState[input.id]) {
-        fieldState[input.id].isTouched = true;
-    }
-    comparePrice();
-    checkAndAutoSaveBackground();
-}
-
-function handleBlur(input) {
-    let state = fieldState[input.id];
-    
-    if (state && !state.isTouched && input.value === "" && state.initialValue !== "") {
-        input.value = state.initialValue;
-    } else {
-        if (input.value !== "" && parseFloat(input.value) === 0) {
-            input.value = "";
-        }
-    }
-    comparePrice();
-    checkAndAutoSaveBackground();
-}
-
 function comparePrice() {
-    let priceA = parseFloat(document.getElementById('priceA').value);
-    let weightA = parseFloat(document.getElementById('weightA').value);
-    let priceB = parseFloat(document.getElementById('priceB').value);
-    let weightB = parseFloat(document.getElementById('weightB').value);
-    let priceC = parseFloat(document.getElementById('priceC').value);
-    let weightC = parseFloat(document.getElementById('weightC').value);
+    let priceA = evaluateExpression(document.getElementById('priceA').value);
+    let weightA = evaluateExpression(document.getElementById('weightA').value);
+    let priceB = evaluateExpression(document.getElementById('priceB').value);
+    let weightB = evaluateExpression(document.getElementById('weightB').value);
+    let priceC = evaluateExpression(document.getElementById('priceC').value);
+    let weightC = evaluateExpression(document.getElementById('weightC').value);
 
     let badgeA = document.getElementById('badgeA');
     let badgeB = document.getElementById('badgeB');
@@ -125,7 +233,14 @@ function comparePrice() {
     }
 
     currentCalculationResult = { 
-        inputs: { priceA, weightA, priceB, weightB, priceC, weightC },
+        inputs: {
+            priceA: document.getElementById('priceA').value,
+            weightA: document.getElementById('weightA').value,
+            priceB: document.getElementById('priceB').value,
+            weightB: document.getElementById('weightB').value,
+            priceC: document.getElementById('priceC').value,
+            weightC: document.getElementById('weightC').value
+        },
         items, 
         best 
     };
@@ -146,8 +261,8 @@ function clearFields() {
     
     document.getElementById('btnSave').disabled = true;
     currentCalculationResult = null;
-    fieldState = {};
     lastLoadedHistoryName = null;
+    closeCalcKeyboard();
     localStorage.removeItem('price_calc_autofill');
 }
 
@@ -164,7 +279,6 @@ function promptSaveRecord() {
     let existingIndex = history.findIndex(item => item.name.toLowerCase() === cleanName.toLowerCase());
     
     if (existingIndex !== -1) {
-        // อัปเดตข้อความแจ้งเตือนตามที่คุณต้องการ
         let confirmOverwrite = confirm(`⚠️ มีชื่อ "${cleanName}" ในประวัติอยู่แล้ว! ต้องการเซฟทับรายการเดิมหรือไม่?`);
         if (!confirmOverwrite) {
             setTimeout(() => promptSaveRecord(), 100);
@@ -212,6 +326,7 @@ function openHistoryModal() {
         `).join('');
     }
 
+    closeCalcKeyboard();
     modal.classList.remove('hidden');
 }
 
@@ -247,18 +362,18 @@ function loadHistoryItem(id) {
     let target = history.find(item => item.id === id);
     if (!target) return;
 
-    document.getElementById('priceA').value = isNaN(target.inputs.priceA) ? '' : target.inputs.priceA;
-    document.getElementById('weightA').value = isNaN(target.inputs.weightA) ? '' : target.inputs.weightA;
-    document.getElementById('priceB').value = isNaN(target.inputs.priceB) ? '' : target.inputs.priceB;
-    document.getElementById('weightB').value = isNaN(target.inputs.weightB) ? '' : target.inputs.weightB;
-    document.getElementById('priceC').value = isNaN(target.inputs.priceC) ? '' : target.inputs.priceC;
-    document.getElementById('weightC').value = isNaN(target.inputs.weightC) ? '' : target.inputs.weightC;
+    document.getElementById('priceA').value = target.inputs.priceA || '';
+    document.getElementById('weightA').value = target.inputs.weightA || '';
+    document.getElementById('priceB').value = target.inputs.priceB || '';
+    document.getElementById('weightB').value = target.inputs.weightB || '';
+    document.getElementById('priceC').value = target.inputs.priceC || '';
+    document.getElementById('weightC').value = target.inputs.weightC || '';
 
     lastLoadedHistoryName = target.name;
 
     checkAndAutoSaveBackground();
     closeHistoryModal();
-    comparePrice();
+    evaluateAllFieldsAndCompare();
 }
 
 function deleteHistoryItem(event, id) {
