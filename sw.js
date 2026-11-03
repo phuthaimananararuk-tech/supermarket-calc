@@ -1,4 +1,4 @@
-const CACHE_NAME = 'เทียบคุ้ม-v2.3';
+const CACHE_NAME = 'เทียบคุ้ม-v3.0';
 const ASSETS = [
   './',
   './index.html',
